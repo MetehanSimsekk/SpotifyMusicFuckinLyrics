@@ -1,13 +1,13 @@
 import axios from 'axios';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SliderMusicLine from "./SliderMusicLine";
+import SliderPosition from "./SliderMusicLine";
 import { useEffect, useState ,useRef} from 'react';
 import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight } from 'react-native';
 import Slider from "@react-native-community/slider";
 import { ArtistNames } from '../Models/artistModel';
 import DualSlider from "../Components/SliderEffectsReal";
 import _ from 'lodash';
-
+import HomeScreen from './HomeScreen';
 const Stack = createNativeStackNavigator();
 import SpotifyWebApi from 'spotify-web-api-js';
 import APIRun from './API';
@@ -33,7 +33,7 @@ const params = {
   };
 
 
-  const OpenMusicSelect = ({ route}:{route:any}) => {
+  const OpenMusicSelect = ({ route,navigation}:{route:any,navigation:any}) => {
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -157,6 +157,7 @@ const params = {
 
     const HandleOpenSong = (Track: any,SongPos:number) => {
      APIRun
+     
       const data = {
       // context_uri: Track.album.uri,
         uris:route.params.PathURis,
@@ -184,7 +185,7 @@ const params = {
         })
         .catch((error) => {
           console.error("Hata:", error);
-          alert(error);
+         
         });
     };
 
@@ -211,6 +212,8 @@ const params = {
   //  setPosition(result.data.progress_ms);
   } catch (error) {
     console.error('Hata:', error);
+  
+
   }
 }
 
@@ -426,7 +429,7 @@ const getLyrics = async () => {
          </TouchableOpacity>
      <TouchableOpacity>
      <Text>{msToTime(currentPosition)}</Text>
-     <SliderMusicLine isPlaying={isPlaying}
+     <SliderPosition isPlaying={isPlaying}
     Duration={durationFullTimeOfSong} itemIdOpen={itemIdOpen} isFirstTime={isFirstTime} 
          currentPosition={currentPosition} onPositionChanged={handlePositionChanged} renderTrigger={renderTrigger} skipToNextTrack={skipToNextTrack}/>
 
