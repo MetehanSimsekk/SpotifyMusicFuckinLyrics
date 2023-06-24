@@ -2,6 +2,8 @@ import React from "react";
 import { StyleSheet, Text, Button, View, Image,TouchableOpacity,Animated  } from "react-native";
 import APIRun from "../Components/API";
 import APIforMusixMatch from "./MusicMatch/APIforMusixMatch";
+
+import GoogleTranslate from "./TranslateAPI/GoogleTranslate";
 import { white } from "react-native-paper/lib/typescript/src/styles/themes/v2/colors";
 import { useEffect, useState ,useRef} from 'react';
 
@@ -89,7 +91,7 @@ function HomeScreen() {
     outputRange: ["black", "orange"],
   });
   APIforMusixMatch;
-  
+  GoogleTranslate;
   return (
     <Animated.View style={[styles.container, { backgroundColor }]}>
       <Text style={styles.title}>ORANGER</Text>

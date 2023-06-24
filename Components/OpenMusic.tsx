@@ -12,10 +12,11 @@ const Stack = createNativeStackNavigator();
 import SpotifyWebApi from 'spotify-web-api-js';
 import APIRun from './API';
 import { AntDesign } from '@expo/vector-icons';
-
+import FlagButton from './Flag';
 var access_token  = window.localStorage.getItem("access_token")
 var device_id  = window.localStorage.getItem("device_id")
 var apiKey  = window.localStorage.getItem("apiKey")
+var apiKeyForTranslate  = window.localStorage.getItem("apiKeyForTranslate")
 var baseURL  = window.localStorage.getItem("baseURL")
 const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
 const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
@@ -28,6 +29,7 @@ const spotifyApi = new SpotifyWebApi();
 //NOT : Şarkıya tıklanıldığında şarkının açılması
 
 spotifyApi.setAccessToken(access_token);
+
 // PUT isteği için gönderilecek parametreler
 const params = {
     "device_id": device_id
@@ -49,6 +51,8 @@ const params = {
     const [track, setTrack] = useState("");
     const [trackId, setTrackId] = useState("");
     const [lyrics, setLyrics] = useState('');
+    const [TranslateOflyrics, setTranslateOfLyrics] = useState('');
+
     const [itemIdCrr, setitemIdWithCurrPlaying] = useState('');
     const [itemIdOpen, setitemIdWithOpenSong] = useState('');
     const [isFirstTime, setisFirstTime] = useState(true);
@@ -157,7 +161,7 @@ const params = {
 
 
     const HandleOpenSong = (Track: any,SongPos:number) => {
-     APIRun
+    APIRun
      
       const data = {
       // context_uri: Track.album.uri,
@@ -327,17 +331,89 @@ const getLyrics = async () => {
     });
     const fullLyrics = response.data.message.body.lyrics.lyrics_body;
     const cutOffIndex = fullLyrics.indexOf('...');
-
+   
     if (cutOffIndex !== -1) {
       setLyrics(fullLyrics.slice(0, cutOffIndex));
+
     } else {
       setLyrics(fullLyrics);
+
+
     }
   } catch (error) {
     console.error(error);
   }
 };
-//PREMİU
+
+  const getTranslateOfLyrics = async () => {
+ 
+    const requestData = {
+      q: lyrics,
+      target : 'en'
+      
+      
+    };
+   
+    const response = await axios.post(`https://translation.googleapis.com/language/translate/v2`,requestData, {
+      params: {
+        key: apiKeyForTranslate,
+       
+      }
+     
+    }).then(response => {
+     const textz:string = response.data.data.translations[0].translatedText;
+  const detectedLanguage = response.data.data.translations[0].detectedSourceLanguage;
+const text = textz;
+
+const element = document.createElement('textarea');
+element.innerHTML = text;
+const decodedText = element.value;
+
+
+if (decodedText && detectedLanguage == "tr") {
+  
+  const formattedText = addNewLineBeforeUppercase(decodedText);
+  setTranslateOfLyrics(formattedText);
+  
+}
+else
+{
+
+  
+  setTranslateOfLyrics(decodedText);
+
+}
+      // Erişim tokenı, süresi ve yenileme tokenı gibi bilgileri kullanabilirsiniz haricnde regex ayırma işlemleri burada olur.
+    })
+    .catch(error => {
+      alert(error)
+    });
+    
+  
+};
+
+const addNewLineBeforeUppercase = (text: string): string => {
+  let result = '';
+  let previousChar = '';
+
+  for (let i = 0; i < text.length; i++) {
+    const currentChar = text.charAt(i);
+
+    if (currentChar.match(/[A-Z]/) && previousChar !== '\n') {
+      result += '\n';
+    }
+
+    result += currentChar;
+    previousChar = currentChar;
+  }
+
+  return result;
+};
+
+
+
+//PREMİUM
+
 // const getLyricsPremium = async () => {
 //   try {
 //     const response = await axios.get(`https://api.musixmatch.com/ws/1.1/track.lyrics.get`, {
@@ -383,12 +459,17 @@ const getLyrics = async () => {
       }
     }, [trackId]);
 
+ useEffect(() => {
 
+      if (lyrics) {
+        getTranslateOfLyrics();
+      }
+    }, [lyrics]);
 
     const RenderItem = ({ item, index }: { item: any; index: number }) => {
 
       return (
-        <View>
+        <View style={{ flexDirection: 'row' }}>
 
 
        <View style={{ flexDirection: 'row' }}>
@@ -399,8 +480,11 @@ const getLyrics = async () => {
               }}
             />
 <Text>{lyrics}</Text>
-</View>
 
+</View >
+<View style={{ flexDirection: 'row' }}>
+<Text>{TranslateOflyrics}</Text>
+</View>
         </View>
       );
     };

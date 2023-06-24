@@ -13,7 +13,7 @@ import { Platform } from 'react-native';
 import RefreshToken from './Components/TokenTimeGoToRefreshToken/RefreshToken';
 import axiosInstance from './Components/TokenTimeGoToRefreshToken/RefreshToken';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import FlagButton from './Components/Flag';
 const Stack = createNativeStackNavigator();
 // const navigation =useNavigation;
 // AppRegistry.registerComponent('App', () => App);
@@ -74,6 +74,7 @@ function App() {
         }} />
   <Stack.Screen name="OpenMusicSelect"  
         component={OpenMusicSelect} />
+        
    </Stack.Navigator>
     </NavigationContainer>
   );

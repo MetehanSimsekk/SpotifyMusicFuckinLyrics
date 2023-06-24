@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 
-const ApiForMusicMatch =()=>
+const ApiForMusixMatch =()=>
 { 
  
 const apikey = '9f5f1511ac23bed2174f7df609afa67c';
@@ -15,4 +15,4 @@ window.localStorage.setItem("apiKey",apikey)
 window.localStorage.setItem("baseURL",baseURL)
 }
 }
-export default ApiForMusicMatch();
+export default ApiForMusixMatch();
