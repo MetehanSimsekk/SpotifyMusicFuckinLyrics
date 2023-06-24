@@ -21,6 +21,7 @@ axiosInstance.interceptors.request.use(
 
       if (currentTime > tokenExpiration) {
         try {
+          alert("Erişim süresi bitti")
           // Token'ı yenilemek için gerekli işlemleri yap
           const refreshedToken = await refreshAccessToken();
           // Yeni token'ı kaydet
@@ -32,7 +33,7 @@ axiosInstance.interceptors.request.use(
 
           if (config && config.headers) {
             config.headers.Authorization = `Bearer ${refreshedToken}`;
-          } else {
+          } else {   
             config = {
               ...config,
               headers: {

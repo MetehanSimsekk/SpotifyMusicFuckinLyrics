@@ -6,28 +6,43 @@ import { PanResponder } from 'react-native';
 import { set } from 'lodash';
 import RangeSlider from './RangeSlider';
 
-const SliderPosition =  ({ isPlaying ,currentPosition, onPositionChanged ,Duration, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack}:{isPlaying:any,currentPosition:number,onPositionChanged:any,Duration:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void}) => {
+const SliderPosition =  ({ isPlaying ,currentPosition, RestartPosition, HandleOpenSongForZeroTime,onPositionChanged ,Duration, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack}:{isPlaying:any,currentPosition:number,RestartPosition:any, HandleOpenSongForZeroTime:any,onPositionChanged:any,Duration:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void}) => {
 
-  const [intervalId, setIntervalId] = useState<any>(null);
   const access_token = window.localStorage.getItem("access_token");
-  const [isFirstRender, setIsFirstRender] = useState(true);
-  const [isSliding, setIsSliding] = useState(false);
-  const [isManualChange, setIsManualChange] = useState(false); 
+  const [intervalId, setIntervalId] = useState<any>(null); 
   const [position, setPosition] = useState(0);
-  const [StatusrenderTrigger, setrenderTrigger] = useState(false); 
+  const [StatusrenderTrigger, setrenderTrigger] = useState(false);
+
   
+  
+  useEffect(()=>
+  {
+
+    if(RestartPosition)
+    {
+   
+      setPosition(0)
+      HandleOpenSongForZeroTime(false)
+    }
+  },[RestartPosition]);
+
   const handlePositionChange = (value:any) => {
+    console.log("handlePositionChange - value:", value);
+    console.log(RestartPosition)
 
 
+
+  setPosition(value);
+  if (onPositionChanged) {
+    onPositionChanged(value);
+  }
 
     
-    setPosition(value);
-    if (onPositionChanged) {
-      onPositionChanged(value);
-    }
-  
+
+
   };
 
+  
 
   const TimerPosition = async () => {
     try {
@@ -77,35 +92,18 @@ const SliderPosition =  ({ isPlaying ,currentPosition, onPositionChanged ,Durati
       console.error(error);
       throw error;
     }
-    // try {
-     
-      
-    //     clearInterval(intervalId); 
-    //     const id = setInterval(() => {
-         
-    //       setPosition((position) => position + 1000);
-        
-    //       if(position==Duration)
-    //       {
-           
-    //         setPosition(0)
-    //       }
-    //     }, 1000);
-    //     setIntervalId(id);
-      
-    
-    // } catch (error) {
-    //   console.error(error);
-    //   throw error;
-    // }
+ 
   };
 
   const stopSlider = () => {
-    
+  
     clearInterval(intervalId);
     isPlaying =false
+    
     setIntervalId(null);
   };
+
+
 
 
  
@@ -120,7 +118,7 @@ const SliderPosition =  ({ isPlaying ,currentPosition, onPositionChanged ,Durati
      // Reset the position state
     //  stopSlider();   // Stop any existing intervals
     if (isPlaying) {
-     
+    
       TimerPosition(); // Start the interval if the component is playing
     }
     else{
@@ -159,10 +157,7 @@ const SliderPosition =  ({ isPlaying ,currentPosition, onPositionChanged ,Durati
         minimumValue={0}
         maximumValue={Duration}
         value={position}
-        // onValueChange={(value) => {
-        //   //  setPosition(value);
-        //   ControlPlay();
-        // }}
+        
         onValueChange={handlePositionChange}
         onSlidingComplete={(value) => {
           if(isPlaying)
@@ -176,9 +171,13 @@ const SliderPosition =  ({ isPlaying ,currentPosition, onPositionChanged ,Durati
         }}
       
       />
+
+
     </View>
   );
 };
+
+
 
 export default SliderPosition;
 

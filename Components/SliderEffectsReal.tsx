@@ -12,10 +12,8 @@ const MySlider = () => {
   const [valuesOther, setValuesOther] = useState('00:00');
   const intervalRef = useRef<NodeJS.Timer  | null>(null);
   const [counter, setCounter] = useState(0); // Not Premium Properties
-
-
- 
-  
+  const [position, setPosition] = useState(1);
+   const [RestartPosition ,setRestartPosition ] = useState(false);
   const multiSliderValuesChange = (values:any) => {
 
    
@@ -33,8 +31,6 @@ const MySlider = () => {
   const endMs = parseInt(valuesOther.substring(0, 2)) * 60 + parseInt(valuesOther.substring(3));
   const durationMs = (endMs - startMs) * 1000;
 
-
- 
 
   if (intervalRef.current) 
   clearInterval(intervalRef.current);
@@ -80,29 +76,7 @@ const MySlider = () => {
     
   
   };
-  async function HandleOpenSongForZeroTime(ms:any) {
-
-    try {
-     
-      const response = await axios({
-        method: 'PUT',
-        url: `https://api.spotify.com/v1/me/player/seek?position_ms=0`,
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      });
-      console.log(`Şarkı ${ms} ms konumunda başlatıldı.`);
-      return response;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  
-   
-    
-  
-  };
-  
+ 
   const multiSliderValuesChangeOther = (valuesOther:any) => {
   const totalMinutes =valuesOther[0]
   const hours = Math.floor(totalMinutes / 60);
@@ -160,7 +134,8 @@ const MySlider = () => {
           
         }
         onSlidingComplete={(value) =>
-          HandleOpenSongForTime(value * 1000)
+          HandleOpenSongForTime(value * 
+            1000)
         }
       />
       <Slider
@@ -181,11 +156,7 @@ const MySlider = () => {
       />
       <Text style={styles.text}>{values}</Text>
       <Text style={styles.text}>{valuesOther}</Text>
-      <TouchableOpacity style={styles.button} onPress={HandleOpenSongForZeroTime}>
-      {/* <SliderPosition onPositionChanged={HandleOpenSongForZeroTime} /> */}
-      <AntDesign name="close" size={24} color="black" />
-    </TouchableOpacity>
-
+     
     </View>
   );
 };

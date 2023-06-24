@@ -15,11 +15,12 @@ import GetTrackDataWithSearch from "../Components/SearchMusic";
  import { NavigationContainerRef,ParamListBase,NavigationContainer  } from '@react-navigation/native';
  import * as Progress from 'react-native-progress';
 import Slider from "@react-native-community/slider";
-import SliderMusicLine from "./SliderMusicLine";
-
+import axiosInstance from "./TokenTimeGoToRefreshToken/RefreshToken";
 const APP_NAME = 'SpotifyLikedMusicScreen';
 
 var access_token  = window.localStorage.getItem("access_token")
+var refresh_token  = window.localStorage.getItem("refresh_token")
+
 var device_id  = window.localStorage.getItem("device_id")
 var query:any;
 let letQuery:any;
@@ -63,11 +64,12 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
           }
         );
         setPlaylist(result.data.items);
-       const uris = result.data.items.map((item:any) => item.track.uri);
+       const uris = result.data.items.map((item:any) => item.track.uri); //Yalnızca item verileri içierisndne item track uriyi alır
       setUris(uris);
         
       } catch (error) {
         console.log("An error occurred while fetching the playlist:", error);
+        axiosInstance;
         window.localStorage.setItem("access_token",'')
       }
     };

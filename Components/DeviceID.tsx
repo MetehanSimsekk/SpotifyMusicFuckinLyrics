@@ -1,9 +1,11 @@
 import axios from "axios";
+import { CommonActions, NavigationContainerRef,ParamListBase  } from '@react-navigation/native';
+import { useRef }  from 'react';
 
 let accessToken = window.localStorage.getItem("access_token");
 
 function GetDeviceID() {
-  if(accessToken !=null)
+  if(accessToken != "")
   {
   axios.get(
     'https://api.spotify.com/v1/me/player/devices',
@@ -25,7 +27,7 @@ function GetDeviceID() {
         alert("Please Open Spotify App First");
       } else {
         alert("Hata Apptsx : " + error);
-        console.log(error);
+        
       }
     });
 }}

@@ -11,6 +11,7 @@ import HomeScreen from './HomeScreen';
 const Stack = createNativeStackNavigator();
 import SpotifyWebApi from 'spotify-web-api-js';
 import APIRun from './API';
+import { AntDesign } from '@expo/vector-icons';
 
 var access_token  = window.localStorage.getItem("access_token")
 var device_id  = window.localStorage.getItem("device_id")
@@ -52,6 +53,7 @@ const params = {
     const [itemIdOpen, setitemIdWithOpenSong] = useState('');
     const [isFirstTime, setisFirstTime] = useState(true);
     const [renderTrigger, setRenderTrigger] = useState(false);
+    const [RestartPosition, setRestartPosition] = useState(false);
    
 
  
@@ -65,7 +67,6 @@ const params = {
     const play = () => {
 
      handlePositionChanged(currentPosition);
-    
         HandleOpenSong(playlist[0], currentPosition); //İlk defa oynatılıyorsa, position değeri ile çağırın.
        
         setIsPlaying(true);   
@@ -294,6 +295,23 @@ const handleOpenSongForTimeWithSwitch = async () => {
 };
 
 
+async function HandleOpenSongForZeroTime(newValue:boolean) {
+  try {
+    const response = await axios({
+      method: 'PUT',
+      url: `https://api.spotify.com/v1/me/player/seek?position_ms=0`,
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+    console.log('Şarkı 0 ms konumunda başlatıldı.');
+    setRestartPosition(newValue)
+    return response;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 
 
 
@@ -430,16 +448,33 @@ const getLyrics = async () => {
      <TouchableOpacity>
      <Text>{msToTime(currentPosition)}</Text>
      <SliderPosition isPlaying={isPlaying}
-    Duration={durationFullTimeOfSong} itemIdOpen={itemIdOpen} isFirstTime={isFirstTime} 
-         currentPosition={currentPosition} onPositionChanged={handlePositionChanged} renderTrigger={renderTrigger} skipToNextTrack={skipToNextTrack}/>
+    Duration={durationFullTimeOfSong} RestartPosition={RestartPosition} HandleOpenSongForZeroTime={HandleOpenSongForZeroTime}  itemIdOpen={itemIdOpen} isFirstTime={isFirstTime} 
+    currentPosition={currentPosition} onPositionChanged={handlePositionChanged} renderTrigger={renderTrigger} skipToNextTrack={skipToNextTrack}/>
 
-        <Text>{msToTimeLast(durationFullTimeOfSong)}</Text>
-        </TouchableOpacity>
-     <TouchableOpacity>
-        <DualSlider />
+    <Text>{msToTimeLast(durationFullTimeOfSong)}</Text>
+    </TouchableOpacity>
+    <TouchableOpacity>
+        <DualSlider  />
+        <TouchableOpacity style={styles.circleButton} onPress={()=>HandleOpenSongForZeroTime(true)}>
+      <AntDesign name="close" style={styles.button}  size={24} color="black" />
+   
+      </TouchableOpacity>  
+ 
         </TouchableOpacity>
       </View>
     );
   };
-
+  const styles = StyleSheet.create({
+    circleButton: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: 'orange',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    button: {
+      padding: 10,
+    },
+  });
   export default OpenMusicSelect;

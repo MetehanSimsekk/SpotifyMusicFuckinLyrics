@@ -25,11 +25,13 @@ const SCOPES=["user-library-read","playlist-modify-private","user-read-currently
 
 let access_token:any;
 let device_id:any;
+let refresh_token:any;
 axiosInstance;
   if(Platform.OS = 'web')
   {     
     
      access_token  = window.localStorage.getItem("access_token")
+     refresh_token  = window.localStorage.getItem("refresh_token")
      device_id  = window.localStorage.getItem("device_id")
 
   }
@@ -45,19 +47,19 @@ function App() {
   //const navigationRef = React.useRef(null);
   
    useEffect(() => {
-    if (access_token!=null) {
+    if (access_token!="") {
     
       navigationRef.current?.navigate('SpotifyLikedMusicScreen');
       DeviceID;
     } else {
       navigationRef.current?.dispatch(
-        CommonActions.navigate({
+        CommonActions.navigate({     
           name: 'Home'
         })
       );
     }
-  }, []);
-// navigate to DetailsScreen on component mount
+  }, []);        
+            // navigate to DetailsScreen on component mount
 
 
   
