@@ -13,11 +13,15 @@ import SpotifyWebApi from 'spotify-web-api-js';
 import APIRun from './API';
 import { AntDesign } from '@expo/vector-icons';
 import FlagButton from './Flag';
+import { getLyrics, getSong } from 'genius-lyrics-api';
+
+
 var access_token  = window.localStorage.getItem("access_token")
 var device_id  = window.localStorage.getItem("device_id")
 var apiKey  = window.localStorage.getItem("apiKey")
 var apiKeyForTranslate  = window.localStorage.getItem("apiKeyForTranslate")
 var baseURL  = window.localStorage.getItem("baseURL")
+
 const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
 const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
 const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
@@ -52,7 +56,6 @@ const params = {
     const [trackId, setTrackId] = useState("");
     const [lyrics, setLyrics] = useState('');
     const [TranslateOflyrics, setTranslateOfLyrics] = useState('');
-
     const [itemIdCrr, setitemIdWithCurrPlaying] = useState('');
     const [itemIdOpen, setitemIdWithOpenSong] = useState('');
     const [isFirstTime, setisFirstTime] = useState(true);
@@ -160,6 +163,34 @@ const params = {
     };
 
 
+   
+   
+  //   type song ={
+  //     id: number;		// Genius song id
+  //     title: string;          // Song title
+  //     url: string;		// Genius webpage URL for the song
+  //     lyrics: string;		// Song lyrics
+  //     albumArt: string;	// URL of the album art image (jpg/png)
+  //   }
+    
+  // getSong(options)
+  //   .then((song:song) => console.log(`${song.id} - ${song.title} - ${song.url} - ${song.albumArt} - ${song.lyrics}`));
+  
+  //   type options ={
+  //     title: string;
+  //     artist: string;
+  //     apiKey: string;		// Genius developer access token
+  //     optimizeQuery?: boolean; // (optional, default: false) If true, Perform some cleanup to maximize the chance of finding a match
+  //     authHeader?: boolean; // (optional, default: false) Whether to include auth header in the search request
+  //   }
+    
+  //   type searchResult = {
+  //     id: number;		// Genius song id
+  //     url: string;		// Genius webpage URL for the song
+  //     title: string;		// Song title
+  //     albumArt: string;	// URL of the album art image (jpg/png)
+  //   }
+
     const HandleOpenSong = (Track: any,SongPos:number) => {
     APIRun
      
@@ -259,22 +290,38 @@ const GetTrackData = () => {
             }
               )
           .then(result => {
+            
             setPlaylist([result.data]);
             setDuration(result.data.duration_ms);
-            setArtist(result.data.artists[0].name);
+            setArtist(result.data.artists[0].name);            
             setTrack(result.data.name);
             setitemIdWithOpenSong(result.data.id)
             HandleOpenSong(result.data,0);
             setIsPlaying(true); 
-          
+            
           })
           .catch(error => {
             console.log("An error occurred while fetching the playlist:", error);
             window.localStorage.setItem("access_token", "");
           });
-      };
+        };
+        
+        const options = {
+          apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
+          title: track,
+          artist: artist,
+          optimizeQuery: true
+        };
+      
+      getLyrics(options)
+      .then((lyrics:any) =>
+      {
+        const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '');
+        setLyrics(lyricsWithoutBrackets);
 
-
+      })
+      
+    
 const handleOpenSongForTimeWithSwitch = async () => {
   
   try {
@@ -321,7 +368,7 @@ async function HandleOpenSongForZeroTime(newValue:boolean) {
 
 
 //NOT PREMIUM
-const getLyrics = async () => {
+const getLyricsFormat = async () => {
   try {
     const response = await axios.get(`https://api.musixmatch.com/ws/1.1/track.lyrics.get`, {
       params: {
@@ -363,10 +410,9 @@ const getLyrics = async () => {
     }).then(response => {
      const textz:string = response.data.data.translations[0].translatedText;
   const detectedLanguage = response.data.data.translations[0].detectedSourceLanguage;
-const text = textz;
 
 const element = document.createElement('textarea');
-element.innerHTML = text;
+element.innerHTML = textz;
 const decodedText = element.value;
 
 
