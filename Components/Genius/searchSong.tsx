@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { checkOptions, getTitle } from '../utils';
+import { checkOptions, getTitle } from '../lyricsFolders';
 
 const searchUrl = 'https://api.genius.com/search?q=';
 

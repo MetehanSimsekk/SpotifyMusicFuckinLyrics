@@ -1,6 +1,6 @@
 import searchSong from './searchSong';
-import extractLyrics from '../utils/extractLyricsImport';
-import { checkOptions } from '../utils';
+import extractLyrics from '../lyricsFolders/extractLyricsImport';
+import { checkOptions } from '../lyricsFolders';
 
 /**
  * @param {{apiKey: string, title: string, artist: string, optimizeQuery: boolean}} options

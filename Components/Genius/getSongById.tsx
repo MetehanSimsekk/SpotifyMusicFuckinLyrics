@@ -1,5 +1,5 @@
 import axios from 'axios';
-import extractLyrics from '../utils/extractLyricsImport';
+import extractLyrics from '../lyricsFolders/extractLyricsImport';
 
 const url = 'https://api.genius.com/songs/';
 

@@ -14,6 +14,8 @@ import APIRun from './API';
 import { AntDesign } from '@expo/vector-icons';
 import FlagButton from './Flag';
 import { getLyrics, getSong } from 'genius-lyrics-api';
+import { SelectList } from 'react-native-dropdown-select-list'
+import { findBestMatch } from 'string-similarity';
 
 
 var access_token  = window.localStorage.getItem("access_token")
@@ -31,14 +33,13 @@ const SCOPES=["user-library-read","playlist-modify-private","user-read-currently
 const spotifyApi = new SpotifyWebApi();
 
 //NOT : Şarkıya tıklanıldığında şarkının açılması
-
 spotifyApi.setAccessToken(access_token);
 
 // PUT isteği için gönderilecek parametreler
 const params = {
     "device_id": device_id
   };
-
+  let isLyricsFetched = false; 
 
   const OpenMusicSelect = ({ route,navigation}:{route:any,navigation:any}) => {
 
@@ -61,7 +62,9 @@ const params = {
     const [isFirstTime, setisFirstTime] = useState(true);
     const [renderTrigger, setRenderTrigger] = useState(false);
     const [RestartPosition, setRestartPosition] = useState(false);
-   
+    const [LanguageSelect, setLanguageSelect] = useState("en");
+    const [Trues, setTrues] = useState(false);
+
 
  
     const handlePositionChanged = (position: number) => {
@@ -313,15 +316,16 @@ const GetTrackData = () => {
           optimizeQuery: true
         };
       
-      getLyrics(options)
-      .then((lyrics:any) =>
-      {
-        const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '');
-        setLyrics(lyricsWithoutBrackets);
+        // Bayrak
 
-      })
-      
-    
+        if (!isLyricsFetched) {
+          getLyrics(options)
+            .then((lyrics:any) => {
+              const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '');
+              setLyrics(lyricsWithoutBrackets);
+              isLyricsFetched = true; // Bayrağı etkinleştir
+            });
+        }
 const handleOpenSongForTimeWithSwitch = async () => {
   
   try {
@@ -396,7 +400,7 @@ const getLyricsFormat = async () => {
  
     const requestData = {
       q: lyrics,
-      target : 'en'
+      target : LanguageSelect
       
       
     };
@@ -414,27 +418,45 @@ const getLyricsFormat = async () => {
 const element = document.createElement('textarea');
 element.innerHTML = textz;
 const decodedText = element.value;
+setTranslateOfLyrics(decodedText);
+
+// const originalTokens = lyrics;
+//   const translatedTokens = decodedText;
 
 
-if (decodedText && detectedLanguage == "tr") {
+//   const originalLines = originalTokens.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+//   const translatedLines = translatedTokens.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+
+//   const maxLength = Math.max(originalLines.length, translatedLines.length);
+
+//   let alignedText = '';
+
+//   for (let i = 0; i < maxLength; i++) {
+//     const originalLine = originalLines[i] || '';
+//     const translatedLine = translatedLines[i] || '';
+
+//     alignedText += originalLine + '\n' + translatedLine + '\n';
+//   }
+
+//   return alignedText.trim();
+
+// if (decodedText && detectedLanguage == "tr") {
   
-  const formattedText = addNewLineBeforeUppercase(decodedText);
-  setTranslateOfLyrics(formattedText);
+//   const formattedText = addNewLineBeforeUppercase(decodedText);
+//   setTranslateOfLyrics(formattedText);
   
-}
-else
-{
+// }
+// else
+// {
 
   
-  setTranslateOfLyrics(decodedText);
+//   setTranslateOfLyrics(decodedText);
 
-}
-      // Erişim tokenı, süresi ve yenileme tokenı gibi bilgileri kullanabilirsiniz haricnde regex ayırma işlemleri burada olur.
+// }
     })
     .catch(error => {
       alert(error)
     });
-    
   
 };
 
@@ -455,6 +477,30 @@ const addNewLineBeforeUppercase = (text: string): string => {
 
   return result;
 };
+
+
+
+
+
+
+
+
+
+
+// function alignText() {
+//   const originalTokens:any = lyrics.split(' ');
+//   const translatedTokens = TranslateOflyrics.split(' ');
+
+//   const matches = findBestMatch(originalTokens, translatedTokens);
+
+//   let alignedText = '';
+
+//   for (let i = 0; i < originalTokens.length; i++) {
+//     alignedText += originalTokens[i] + ' ' + matches.bestMatch.target[i] + ' ';
+//   }
+
+//   return alignedText.trim();
+// }
 
 
 
@@ -505,12 +551,43 @@ const addNewLineBeforeUppercase = (text: string): string => {
       }
     }, [trackId]);
 
- useEffect(() => {
+    useEffect(() => {
 
       if (lyrics) {
         getTranslateOfLyrics();
+        
       }
-    }, [lyrics]);
+    }, [lyrics,LanguageSelect]);
+
+   
+
+
+
+    // useEffect(()=>
+    // {
+     
+    //     alignText()
+      
+
+    // },[Trues])
+
+    const data = [
+      {key:'tr', value:'Turkish'},
+      {key:'en', value:'English'},
+      {key:'de', value:'Deutsch'},
+      {key:'fr', value:'Français'},
+      {key:'it', value:'Italiano'},
+      {key:'ru', value:'Russian'},
+      {key:'ja', value:'Japanese'},
+      {key:'zh-CN', value:'Chinese'},
+      {key:'ko', value:'Korean'},
+      {key:'ar', value:'Arabic'},
+
+  ]
+  
+
+
+
 
     const RenderItem = ({ item, index }: { item: any; index: number }) => {
 
@@ -537,7 +614,20 @@ const addNewLineBeforeUppercase = (text: string): string => {
 
     return (
       <View>
-
+        <TouchableOpacity style={{margin:5,width: 200 }}>
+ <SelectList 
+        setSelected={(val:any) => 
+          {
+          
+            setLanguageSelect(val)
+            
+          }
+        
+        } 
+        data={data} 
+        save="key"
+    />
+    </TouchableOpacity>
         <FlatList data={playlist} renderItem={RenderItem} />
         <TouchableOpacity
         onPress={() => {
