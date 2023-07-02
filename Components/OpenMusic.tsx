@@ -419,7 +419,7 @@ const element = document.createElement('textarea');
 element.innerHTML = textz;
 const decodedText = element.value;
 setTranslateOfLyrics(decodedText);
-
+//----------------------------------------------------------------------------------------------------
 // const originalTokens = lyrics;
 //   const translatedTokens = decodedText;
 
@@ -439,7 +439,7 @@ setTranslateOfLyrics(decodedText);
 //   }
 
 //   return alignedText.trim();
-
+//-------------------------------------------------------------------------
 // if (decodedText && detectedLanguage == "tr") {
   
 //   const formattedText = addNewLineBeforeUppercase(decodedText);
