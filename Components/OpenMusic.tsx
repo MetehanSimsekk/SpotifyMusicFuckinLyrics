@@ -16,11 +16,14 @@ import FlagButton from './Flag';
 import { getLyrics, getSong } from 'genius-lyrics-api';
 import { SelectList } from 'react-native-dropdown-select-list'
 import { findBestMatch } from 'string-similarity';
+import SystranForTranslate from './TranslateAPI/SystranForTranslate';
+import axiosInstance from './TokenTimeGoToRefreshToken/RefreshToken';
 
 
 var access_token  = window.localStorage.getItem("access_token")
 var device_id  = window.localStorage.getItem("device_id")
 var apiKey  = window.localStorage.getItem("apiKey")
+var apiKeyForSystran  = window.localStorage.getItem("apiKeyForSystran")
 var apiKeyForTranslate  = window.localStorage.getItem("apiKeyForTranslate")
 var baseURL  = window.localStorage.getItem("baseURL")
 
@@ -62,8 +65,8 @@ const params = {
     const [isFirstTime, setisFirstTime] = useState(true);
     const [renderTrigger, setRenderTrigger] = useState(false);
     const [RestartPosition, setRestartPosition] = useState(false);
-    const [LanguageSelect, setLanguageSelect] = useState("en");
-    const [Trues, setTrues] = useState(false);
+    const [LanguageSelect, setLanguageSelect] = useState("");
+    const [DefaultLyrics, setDefaultLyrics] = useState(false);
 
 
  
@@ -99,7 +102,6 @@ const params = {
       // Fetch the data for the next song
       GetTrackData();
       setRenderTrigger(!renderTrigger)
-    
    
     }
     function skipToPreviousTrack() {
@@ -108,6 +110,7 @@ const params = {
         route.params.index--;
         GetTrackData();
         setRenderTrigger(!renderTrigger)
+       
       }
       
       
@@ -293,7 +296,7 @@ const GetTrackData = () => {
             }
               )
           .then(result => {
-            
+            isLyricsFetched = false
             setPlaylist([result.data]);
             setDuration(result.data.duration_ms);
             setArtist(result.data.artists[0].name);            
@@ -302,10 +305,13 @@ const GetTrackData = () => {
             HandleOpenSong(result.data,0);
             setIsPlaying(true); 
             
+            
           })
           .catch(error => {
             console.log("An error occurred while fetching the playlist:", error);
             window.localStorage.setItem("access_token", "");
+            alert("Token süresi doldu")
+            axiosInstance
           });
         };
         
@@ -321,11 +327,13 @@ const GetTrackData = () => {
         if (!isLyricsFetched) {
           getLyrics(options)
             .then((lyrics:any) => {
-              const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '');
+              const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '');            
+
               setLyrics(lyricsWithoutBrackets);
               isLyricsFetched = true; // Bayrağı etkinleştir
             });
         }
+
 const handleOpenSongForTimeWithSwitch = async () => {
   
   try {
@@ -371,6 +379,11 @@ async function HandleOpenSongForZeroTime(newValue:boolean) {
 
 
 
+
+
+
+
+
 //NOT PREMIUM
 const getLyricsFormat = async () => {
   try {
@@ -395,141 +408,66 @@ const getLyricsFormat = async () => {
     console.error(error);
   }
 };
-
-  const getTranslateOfLyrics = async () => {
- 
+function sleep(ms:any) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+const getTranslateOfLyrics = async () => {
+  setDefaultLyrics(false)
+  let originalLines =[];
+  let translatedLines ="";
+  try {
     const requestData = {
-      q: lyrics,
-      target : LanguageSelect
-      
-      
+      input: lyrics,
+      target: LanguageSelect,
     };
-   
-    const response = await axios.post(`https://translation.googleapis.com/language/translate/v2`,requestData, {
-      params: {
-        key: apiKeyForTranslate,
-       
+
+    const response = await axios.post(
+      "https://api-translate.systran.net/translation/text/translate",
+      requestData,
+      {
+        params: {
+          key: apiKeyForSystran,
+        },
       }
-     
-    }).then(response => {
-     const textz:string = response.data.data.translations[0].translatedText;
-  const detectedLanguage = response.data.data.translations[0].detectedSourceLanguage;
+    );
 
-const element = document.createElement('textarea');
-element.innerHTML = textz;
-const decodedText = element.value;
-setTranslateOfLyrics(decodedText);
-//----------------------------------------------------------------------------------------------------
-// const originalTokens = lyrics;
-//   const translatedTokens = decodedText;
-
-
-//   const originalLines = originalTokens.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-//   const translatedLines = translatedTokens.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-
-//   const maxLength = Math.max(originalLines.length, translatedLines.length);
-
-//   let alignedText = '';
-
-//   for (let i = 0; i < maxLength; i++) {
-//     const originalLine = originalLines[i] || '';
-//     const translatedLine = translatedLines[i] || '';
-
-//     alignedText += originalLine + '\n' + translatedLine + '\n';
-//   }
-
-//   return alignedText.trim();
-//-------------------------------------------------------------------------
-// if (decodedText && detectedLanguage == "tr") {
+    const translatedText = response.data.outputs[0].output;
   
-//   const formattedText = addNewLineBeforeUppercase(decodedText);
-//   setTranslateOfLyrics(formattedText);
-  
-// }
-// else
-// {
+     originalLines = lyrics.split("\n").map((line) => line.trim()).filter((line) => line.length > 0 );
 
-  
-//   setTranslateOfLyrics(decodedText);
+     translatedLines = translatedText.split("\n").map((line:any) => line.trim()).filter((line:any) => line.length > 0);
+ 
+   
 
-// }
-    })
-    .catch(error => {
-      alert(error)
-    });
-  
-};
+    const maxLength = Math.max(originalLines.length, translatedLines.length);
 
-const addNewLineBeforeUppercase = (text: string): string => {
-  let result = '';
-  let previousChar = '';
+    const alignedLines = [];
+for (let i = 0; i < maxLength; i++) {
+  const originalLine = originalLines[i] || "";
+  const translatedLine = translatedLines[i] || "";
 
-  for (let i = 0; i < text.length; i++) {
-    const currentChar = text.charAt(i);
+  alignedLines.push(originalLine, translatedLine);
+}
 
-    if (currentChar.match(/[A-Z]/) && previousChar !== '\n') {
-      result += '\n';
+const alignedText = alignedLines.join("\n");
+
+    setTranslateOfLyrics(alignedText.trim());
+  } catch (error) {
+    if(error=="Error: Request failed with status code 400")
+    {
+      setDefaultLyrics(true)
     }
-
-    result += currentChar;
-    previousChar = currentChar;
+    else{
+      alert("The language of the song does not support the target language");
+      setDefaultLyrics(true)
+      
+    }
   }
-
-  return result;
 };
 
-
-
-
-
-
-
-
-
-
-// function alignText() {
-//   const originalTokens:any = lyrics.split(' ');
-//   const translatedTokens = TranslateOflyrics.split(' ');
-
-//   const matches = findBestMatch(originalTokens, translatedTokens);
-
-//   let alignedText = '';
-
-//   for (let i = 0; i < originalTokens.length; i++) {
-//     alignedText += originalTokens[i] + ' ' + matches.bestMatch.target[i] + ' ';
-//   }
-
-//   return alignedText.trim();
-// }
-
-
-
-//PREMİUM
-
-// const getLyricsPremium = async () => {
-//   try {
-//     const response = await axios.get(`https://api.musixmatch.com/ws/1.1/track.lyrics.get`, {
-//       params: {
-//         track_id: trackId,
-//         apikey: apiKey,
-//       },
-//     });
-//     const fullLyrics = response.data.message.body.lyrics.lyrics_body;
-//     const cutOffIndex = fullLyrics.indexOf('...');
-
-//     if (cutOffIndex !== -1) {
-//       setLyrics(fullLyrics.slice(0, cutOffIndex));
-//     } else {
-//       setLyrics(fullLyrics);
-//     }
-//   } catch (error) {
-//     console.error(error);
-//   }
-// };
 
      useEffect(() => {
-      //  currentlyPlayingGetPosition();
-      //  handleOpenSongForTimeWithSwitch();
+  
        
        GetTrackData();
       
@@ -548,15 +486,15 @@ const addNewLineBeforeUppercase = (text: string): string => {
 
       if (trackId) {
         getLyrics();
+        
       }
     }, [trackId]);
 
     useEffect(() => {
 
-      if (lyrics) {
-        getTranslateOfLyrics();
-        
-      }
+    
+        getTranslateOfLyrics(); 
+      
     }, [lyrics,LanguageSelect]);
 
    
@@ -574,14 +512,18 @@ const addNewLineBeforeUppercase = (text: string): string => {
     const data = [
       {key:'tr', value:'Turkish'},
       {key:'en', value:'English'},
+      {key:'es', value:'Spanish'},
+      {key:'fr', value:'Francais'},
+      {key:'pt', value:'Portuguese'},
       {key:'de', value:'Deutsch'},
-      {key:'fr', value:'Français'},
       {key:'it', value:'Italiano'},
       {key:'ru', value:'Russian'},
       {key:'ja', value:'Japanese'},
-      {key:'zh-CN', value:'Chinese'},
+      {key:'zh', value:'Chinese'},
       {key:'ko', value:'Korean'},
+      {key:'es', value:'Czech'},      
       {key:'ar', value:'Arabic'},
+      {key:'pl', value:'Poland'},
 
   ]
   
@@ -602,11 +544,10 @@ const addNewLineBeforeUppercase = (text: string): string => {
                 uri: item.album.images[index].url, //Array görüntü kalitesini ayarlıyor 0>1>2
               }}
             />
-<Text>{lyrics}</Text>
+<Text style={{ lineHeight: 30,  fontWeight: '500' }}>{DefaultLyrics==false?TranslateOflyrics:lyrics}</Text>
 
 </View >
 <View style={{ flexDirection: 'row' }}>
-<Text>{TranslateOflyrics}</Text>
 </View>
         </View>
       );

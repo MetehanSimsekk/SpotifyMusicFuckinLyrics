@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, Button, View, Image,TouchableOpacity,Animated  } from "react-native";
 import APIRun from "../Components/API";
 import APIforMusixMatch from "./MusicMatch/APIforMusixMatch";
-
+import SystranForTranslate from "./TranslateAPI/SystranForTranslate";
 import GoogleTranslate from "./TranslateAPI/GoogleTranslate";
 import { white } from "react-native-paper/lib/typescript/src/styles/themes/v2/colors";
 import { useEffect, useState ,useRef} from 'react';
@@ -15,11 +15,6 @@ const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
 const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
 const REDIRECT_URI="http://localhost:19006/callback"
 const SCOPES=["user-library-read","playlist-modify-private","user-read-currently-playing","user-read-playback-state","user-modify-playback-state","app-remote-control"]
-
-
-
-
-
 
 
 
@@ -92,6 +87,7 @@ function HomeScreen() {
   });
   APIforMusixMatch;
   GoogleTranslate;
+  SystranForTranslate;
   return (
     <Animated.View style={[styles.container, { backgroundColor }]}>
       <Text style={styles.title}>ORANGER</Text>
