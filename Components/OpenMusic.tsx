@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SliderPosition from "./SliderMusicLine";
 import { useEffect, useState ,useRef} from 'react';
@@ -20,7 +20,7 @@ import SystranForTranslate from './TranslateAPI/SystranForTranslate';
 import axiosInstance from './TokenTimeGoToRefreshToken/RefreshToken';
 
 
-var access_token  = window.localStorage.getItem("access_token")
+var access_token:any  = window.localStorage.getItem("access_token")
 var device_id  = window.localStorage.getItem("device_id")
 var apiKey  = window.localStorage.getItem("apiKey")
 var apiKeyForSystran  = window.localStorage.getItem("apiKeyForSystran")
@@ -199,10 +199,10 @@ const params = {
 
     const HandleOpenSong = (Track: any,SongPos:number) => {
     APIRun
-     
+    
       const data = {
       // context_uri: Track.album.uri,
-        uris:route.params.PathURis,
+        uris:route.params.PathURis[0],
         offset: {
           position: route.params.index,
         },
@@ -260,7 +260,7 @@ const params = {
 }
 
 
-const getTrackId = () => {
+const  getTrackId = () => {
 
   axios
     .get(`https://api.musixmatch.com/ws/1.1/track.search`, {
@@ -315,6 +315,8 @@ const GetTrackData = () => {
           });
         };
         
+
+
         const options = {
           apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
           title: track,
@@ -408,51 +410,61 @@ const getLyricsFormat = async () => {
     console.error(error);
   }
 };
-function sleep(ms:any) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+
+
 const getTranslateOfLyrics = async () => {
   setDefaultLyrics(false)
   let originalLines =[];
   let translatedLines ="";
   try {
-    const requestData = {
-      input: lyrics,
-      target: LanguageSelect,
-    };
+    
 
-    const response = await axios.post(
-      "https://api-translate.systran.net/translation/text/translate",
-      requestData,
-      {
-        params: {
-          key: apiKeyForSystran,
-        },
-      }
-    );
-
-    const translatedText = response.data.outputs[0].output;
+    if(lyrics!=""){
+      const requestData = {
+        input: lyrics,
+        target: LanguageSelect,
+      };
   
-     originalLines = lyrics.split("\n").map((line) => line.trim()).filter((line) => line.length > 0 );
-
-     translatedLines = translatedText.split("\n").map((line:any) => line.trim()).filter((line:any) => line.length > 0);
- 
+      const response = await axios.post(
+        "https://api-translate.systran.net/translation/text/translate",
+        requestData,
+        {
+          params: {
+            key: apiKeyForSystran,
+          },
+        }
+      );
+  
+      const translatedText = response.data.outputs[0].output;
+    
+       originalLines = lyrics.split("\n").map((line) => line.trim()).filter((line) => line.length > 0 );
+  
+       translatedLines = translatedText.split("\n").map((line:any) => line.trim()).filter((line:any) => line.length > 0);
    
-
-    const maxLength = Math.max(originalLines.length, translatedLines.length);
-
-    const alignedLines = [];
-for (let i = 0; i < maxLength; i++) {
-  const originalLine = originalLines[i] || "";
-  const translatedLine = translatedLines[i] || "";
-
-  alignedLines.push(originalLine, translatedLine);
-}
-
-const alignedText = alignedLines.join("\n");
-
-    setTranslateOfLyrics(alignedText.trim());
-  } catch (error) {
+     
+  
+      const maxLength = Math.max(originalLines.length, translatedLines.length);
+  
+      const alignedLines = [];
+      for (let i = 0; i < maxLength; i++) {
+        const originalLine = originalLines[i] || "";
+        const translatedLine = translatedLines[i] || "";
+  
+        alignedLines.push(originalLine, translatedLine);
+      }
+  
+  const alignedText = alignedLines.join("\n");
+  
+      setTranslateOfLyrics(alignedText.trim());
+  
+  
+    }
+  else{
+    setDefaultLyrics(true)
+  }
+  }
+    
+  catch (error) {
     if(error=="Error: Request failed with status code 400")
     {
       setDefaultLyrics(true)
@@ -491,11 +503,9 @@ const alignedText = alignedLines.join("\n");
     }, [trackId]);
 
     useEffect(() => {
-
+      getTranslateOfLyrics(); 
     
-        getTranslateOfLyrics(); 
-      
-    }, [lyrics,LanguageSelect]);
+    }, [LanguageSelect]);
 
    
 
@@ -559,7 +569,6 @@ const alignedText = alignedLines.join("\n");
  <SelectList 
         setSelected={(val:any) => 
           {
-          
             setLanguageSelect(val)
             
           }

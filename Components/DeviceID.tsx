@@ -26,7 +26,7 @@ function GetDeviceID() {
       if (error === "TypeError: Cannot read properties of undefined (reading 'id') ") {
         alert("Please Open Spotify App First");
       } else {
-        alert("Hata Apptsx : " + error);
+        // alert("Hata Apptsx : " + error);
         
       }
     });

@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking  } from 'react-native';
 import queryString from 'query-string';
 import axios from 'axios';
-import DeviceID from "./DeviceID";
+// import DeviceID from "./DeviceID";
 
 const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
 const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/

@@ -26,7 +26,7 @@ const SCOPES=["user-library-read","playlist-modify-private","user-read-currently
 let access_token:any;
 let device_id:any;
 let refresh_token:any;
-axiosInstance;
+// axiosInstance;
   if(Platform.OS = 'web')
   {     
     
@@ -47,7 +47,7 @@ function App() {
   //const navigationRef = React.useRef(null);
   
    useEffect(() => {
-    if (access_token!="") {
+    if (access_token!=null) {
     
       navigationRef.current?.navigate('SpotifyLikedMusicScreen');
       DeviceID;
