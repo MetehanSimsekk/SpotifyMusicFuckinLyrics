@@ -1,16 +1,23 @@
 import axios from "axios";
+import queryString from 'query-string';
+import { Platform } from 'react-native';
+
+
 
 const axiosInstance = axios.create();
 let tokenData:any; 
 const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
 const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
+
+
+if(Platform.OS === 'web')
+{
 const REFRESHT_OKEN = window.localStorage.getItem("refresh_token");
 
 axiosInstance.interceptors.request.use(
   
   
   async (config) => {
-    alert("inter")
     const accessToken = window.localStorage.getItem("access_token");
     
     // Token kontrolü ve yenileme işlemi
@@ -21,7 +28,6 @@ axiosInstance.interceptors.request.use(
 
       if (currentTime > tokenExpiration) {
         try {
-          alert("Erişim süresi bitti")
           // Token'ı yenilemek için gerekli işlemleri yap
           const refreshedToken = await refreshAccessToken();
           // Yeni token'ı kaydet
@@ -75,37 +81,46 @@ const refreshAccessToken = () => {
     client_id: CLIENT_ID,
     client_secret: CLIENT_SECRET,
   };
-  
-  axios.post('https://accounts.spotify.com/api/token', requestData)
+  const encodedData = queryString.stringify(requestData);
+  const headers = {
+    "Content-Type": 'application/x-www-form-urlencoded',
+
+  };
+            
+  axios.post('https://accounts.spotify.com/api/token', encodedData, { timeout: 10000 ,headers})
     .then(response => {
      
-      tokenData= parseTokenData(response)
+      // tokenData= parseTokenData(response.data.access_token)
      window.localStorage.setItem("access_token", response.data.access_token);
      window.localStorage.setItem("expires_in", response.data.expires_in);
       // Erişim tokenı, süresi ve yenileme tokenı gibi bilgileri kullanabilirsiniz
     })
     .catch(error => {
       // Hata yönetimi
+      if (error.response) {
+        // Sunucudan dönen hata durumu varsa
+        console.log(error.response.data);
+        console.log(error.response.status);
+        console.log(error.response.headers);
+      } else if (error.request) {
+        // İstek gönderildi ama yanıt alınamadıysa
+        console.log(error.request);
+      } else {
+        // Diğer hatalar
+        console.log('Error', error.message);
+      }
     });
 };
-// function calculateNewExpirationTime() {
-//  const accessToken = window.localStorage.getItem("access_token");
-//    tokenData // Token'dan gerekli bilgileri ayrıştırma işlemi
-
-//   const currentTime = Math.floor(Date.now() / 1000); // Şu anki zamanı saniye cinsinden al
-//   const newExpiration = currentTime + tokenData.expires_in; // Yeni süreyi hesapla
-
-//   return newExpiration;
-// }
 
 function parseTokenData(token:any) {
-  const base64Url = token.split('.')[1]; // Tokenı "." karakterine göre böler ve ikinci bölümü alır
+  const base64Url = token.split('.')[0]; // Tokenı "." karakterine göre böler ve ikinci bölümü alır
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // URL güvenliği için bazı karakterlerin yerini değiştirir
   const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2); // Base64'ü çözerek JSON verisini elde eder
   }).join(''));
 
   return JSON.parse(jsonPayload); // JSON verisini nesne olarak ayrıştırır
+}
 }
 // Axios instance'ı export et
 export default axiosInstance;

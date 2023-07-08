@@ -4,9 +4,13 @@ import Slider from '@react-native-community/slider';
 import axios from 'axios';
 import { AntDesign } from '@expo/vector-icons';
 import SliderPosition from './SliderMusicLine';
+import { Platform } from 'react-native';
 
-const access_token  = window.localStorage.getItem("access_token")
-
+let access_token:any = "";
+if(Platform.OS === 'web')
+{
+ access_token  = window.localStorage.getItem("access_token")
+}
 const MySlider = () => {
   const [values, setValues] = useState('00:00');
   const [valuesOther, setValuesOther] = useState('00:00');

@@ -17,16 +17,59 @@ import GetTrackDataWithSearch from "../Components/SearchMusic";
 import Slider from "@react-native-community/slider";
 import axiosInstance from "./TokenTimeGoToRefreshToken/RefreshToken";
 const APP_NAME = 'SpotifyLikedMusicScreen';
+import { Platform } from 'react-native';
+import APIRun from "./API";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-var access_token:any  = window.localStorage.getItem("access_token")
-var refresh_token  = window.localStorage.getItem("refresh_token")
+let device_id:any ="";
+let access_token:any ="";
+let refresh_token:any ="";
 
-var device_id  = window.localStorage.getItem("device_id")
+
+if(Platform.OS === 'web')
+{
+   access_token  = window.localStorage.getItem("access_token")
+   refresh_token  = window.localStorage.getItem("refresh_token")
+  
+  device_id  = window.localStorage.getItem("device_id")
+}
+else if (Platform.OS === 'ios')
+{
+  AsyncStorage.getItem('access_token')
+  .then(token => {
+    access_token = token;
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
+  });
+
+AsyncStorage.getItem('refresh_token')
+  .then(token => {
+    refresh_token = token;
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
+
+  });
+
+AsyncStorage.getItem('device_id')
+  .then(id => {
+    device_id = id;
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
+
+  });
+}
+
 var query:any;
 let letQuery:any;
 var linkOfMusic;
 
-console.log("Music"+window.location.href)
+
 
 const Stack = createNativeStackNavigator();
 
@@ -95,8 +138,16 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
           console.log(uris)
         }
       }
-    } catch (error) {
-      console.error('Hata:', error);
+    } catch (error:any) {
+      if(error=="Error: Request failed with status code 404")
+          {
+            APIRun()
+          }
+          else{
+            axiosInstance.get("");
+            
+          }
+      // axiosInstance.get("")
     }
   
     // return allLikedSongs;

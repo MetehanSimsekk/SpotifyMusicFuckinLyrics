@@ -1,8 +1,17 @@
 import axios from "axios";
 import { CommonActions, NavigationContainerRef,ParamListBase  } from '@react-navigation/native';
 import { useRef }  from 'react';
+import axiosInstance from "./TokenTimeGoToRefreshToken/RefreshToken";
+import { Platform } from 'react-native';
 
-let accessToken = window.localStorage.getItem("access_token");
+
+let accessToken:any="";
+ 
+if(Platform.OS === 'web')
+{
+
+ accessToken = window.localStorage.getItem("access_token");
+}
 
 function GetDeviceID() {
   if(accessToken != "")
@@ -28,6 +37,9 @@ function GetDeviceID() {
       } else {
         // alert("Hata Apptsx : " + error);
         
+        // axiosInstance.get("");
+      // İstek başarılı olduğunda response kullanılabilir
+     
       }
     });
 }}

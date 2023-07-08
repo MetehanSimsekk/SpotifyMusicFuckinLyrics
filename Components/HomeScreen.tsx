@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, Button, View, Image,TouchableOpacity,Animated  } from "react-native";
+import { StyleSheet, Text, Button, View, Image,TouchableOpacity,Animated ,Dimensions  } from "react-native";
 import APIRun from "../Components/API";
 import APIforMusixMatch from "./MusicMatch/APIforMusixMatch";
 import SystranForTranslate from "./TranslateAPI/SystranForTranslate";
@@ -18,8 +18,10 @@ const SCOPES=["user-library-read","playlist-modify-private","user-read-currently
 
 
 
+let fontSizeRatio:number=0
 
 
+  
 function HomeScreen() {
 
   const [isPressed, setIsPressed] = useState(false);
@@ -55,6 +57,8 @@ function HomeScreen() {
 
   // }, [renderCount]);
 
+  
+  // biggerFontSizeRatio = fontSizeRatio * 10.5; 
 
   useEffect(() => {
     Animated.loop(
@@ -72,7 +76,6 @@ function HomeScreen() {
       ])
     ).start();
   }, []);
-
   const backgroundColor = colorAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: ["black", "orange"],
@@ -90,8 +93,15 @@ function HomeScreen() {
   SystranForTranslate;
   return (
     <Animated.View style={[styles.container, { backgroundColor }]}>
-      <Text style={styles.title}>ORANGER</Text>
-      
+      <View style={styles.titleContainer}>
+        <Text style={styles.titleText}>O</Text>
+        <Text style={styles.titleText}>R</Text>
+        <Text style={styles.titleText}>A</Text>
+        <Text style={styles.titleText}>N</Text>
+        <Text style={styles.titleText}>G</Text>
+        <Text style={styles.titleText}>E</Text>
+        <Text style={styles.titleText}>R</Text>
+      </View>
        <Image
           source={require("../assets/spotify_logo.png")} // Spotify logosunun dosya yolu
           style={styles.logo}
@@ -114,6 +124,14 @@ function HomeScreen() {
 }
 
 export default HomeScreen;
+
+
+//Styles
+const { width, height } = Dimensions.get('window') ;
+  
+fontSizeRatio = Math.min(width, height) / 4.6 ;
+const connectTextHeight = height * 0.054; 
+const connectTextWidth = width * 0.6; 
 
 const styles = StyleSheet.create({
    container: {
@@ -145,23 +163,46 @@ const styles = StyleSheet.create({
   },
   button: {
      // Orange color
+    margin:0,
     paddingHorizontal: 16,
-    paddingVertical: 4,
-  
+    paddingVertical: 6,
+    justifyContent: "center",
+    alignItems: "center",
     // Spotify green color
-    fontSize: 16,
+    marginTop:6,
+    marginLeft:15,
+    fontSize: 18,
     fontWeight: "bold",
- 
+    fontFamily: "AvenirNext-DemiBold",
   
     
    
   },
+  titleContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    position: 'absolute', // Mutlaka ekleyin
+    zIndex: -1, // Mutlaka ekleyin
+   
+
+  },
+
+  titleText: {
+    fontSize: fontSizeRatio, // Yazı boyutunu istediğiniz gibi ayarlayın
+    color: "white",
+    textAlign: "center",
+    fontFamily: "Chalkduster", // Kullanmak istediğiniz yazı tipini belirleyin
+    textTransform: "uppercase", 
+  },
   connectText: {
     // Spotify green color
-   height:35,
-    borderColor:"white",
+   height:connectTextHeight,
+   width:connectTextWidth,
+   borderColor:"white",
     borderWidth:0.2,
     borderRadius:15,
-    marginTop:12
+    marginTop:60
   },
 });

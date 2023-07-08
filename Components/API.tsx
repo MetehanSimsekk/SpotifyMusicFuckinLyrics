@@ -22,12 +22,12 @@ let expires_in:any;
 
 
 
-const urls = SPOTFY_AUTHORIZE_ENDPOINT + '?client_id=' + CLIENT_ID + '&redirect_uri=' + REDIRECT_URI + '&scope=' + SCOPES + '&response_type=code&show_dialog=true';
 const APIRun =()=>{
   
   
   if(Platform.OS === 'web')
   {
+ const urls = SPOTFY_AUTHORIZE_ENDPOINT + '?client_id=' + CLIENT_ID + '&redirect_uri=' + REDIRECT_URI + '&scope=' + SCOPES + '&response_type=code&show_dialog=true';
     
     try {
       
@@ -114,32 +114,54 @@ let token = window.localStorage.getItem("access_token")
  
     
 }
-else
+else if(Platform.OS === 'ios')
 {
+ 
   let accessToken:any;
-  Linking.openURL(
-    `${SPOTFY_AUTHORIZE_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES}&response_type=token&show_dialog=true`
-  );
+  // Linking.openURL(
+  //   `${SPOTFY_AUTHORIZE_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES}&response_type=code&show_dialog=true`
+  // );
+// Oturum açma işlemi tamamlandıktan sonra çağrılacak işlev
+// const handleCallback = (event:any) => {
+//   const { url } = event;
+//   alert("url"+url)
+//   const uri = decodeURIComponent(url);
+
+//   if (uri.startsWith('myapp://callback')) {
+//     // URI'yi işleyin ve Spotify'dan gelen erişim kodunu alın
+//     // Token isteği yapmak için erişim kodunu kullanın
+//   }
+// };
+
+// Geri dönüşü dinlemek için olay dinleyicisini ekle
+// Linking.addEventListener('url', handleCallback);
 
   Linking.addEventListener('url', (event) => {
+   
     const queryParams  = queryString.parseUrl(event.url).query;
+    alert(queryParams)
      accessToken = queryParams.access_token as string;
     // access token'ı kullanarak diğer işlemleri yapabilirsiniz
   });
-
   const getToken = async () => {
+
     const token = await AsyncStorage.getItem('access_token');
-    if (!token && accessToken) {
+    
+    if (token==null) {
+      alert("accestoekne"+accessToken)
       const tokenValue = accessToken
         .substring(1)
         .split('&')
         .find((elem:any) => elem.startsWith('access_token'))
         .split('=')[1];
+        alert("TokenVal"+tokenValue)
       const tokenTypeValue = accessToken
         .substring(1)
         .split('&')
         .find((elem:any) => elem.startsWith('token_type'))
         .split('=')[1];
+        alert("token_type"+tokenTypeValue)
+
       const expiresInValue = accessToken
         .substring(1)
         .split('&')
@@ -152,6 +174,7 @@ else
   };
   
   const handleLogin = async () => {
+
     await getToken();
     // access token'ı kullanarak diğer işlemleri yapabilirsiniz
   };

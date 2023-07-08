@@ -18,15 +18,19 @@ import { SelectList } from 'react-native-dropdown-select-list'
 import { findBestMatch } from 'string-similarity';
 import SystranForTranslate from './TranslateAPI/SystranForTranslate';
 import axiosInstance from './TokenTimeGoToRefreshToken/RefreshToken';
+import { ErrorModel } from './Error/ErrorModel';
+import { Platform } from 'react-native';
 
-
+let device_id:any ="";
+if(Platform.OS === 'web')
+{
 var access_token:any  = window.localStorage.getItem("access_token")
-var device_id  = window.localStorage.getItem("device_id")
+ device_id  = window.localStorage.getItem("device_id")
 var apiKey  = window.localStorage.getItem("apiKey")
 var apiKeyForSystran  = window.localStorage.getItem("apiKeyForSystran")
 var apiKeyForTranslate  = window.localStorage.getItem("apiKeyForTranslate")
 var baseURL  = window.localStorage.getItem("baseURL")
-
+}
 const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
 const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
 const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
@@ -198,7 +202,7 @@ const params = {
   //   }
 
     const HandleOpenSong = (Track: any,SongPos:number) => {
-    APIRun
+    // APIRun
     
       const data = {
       // context_uri: Track.album.uri,
@@ -225,9 +229,17 @@ const params = {
           console.log("Başarılı:", response.data);
           
         })
-        .catch((error) => {
-          console.error("Hata:", error);
+        .catch((error:any) => {
          
+          if(error=="Error: Request failed with status code 404")
+          {
+            APIRun()
+          }
+          else{
+            
+            axiosInstance.get("");
+            
+          }
         });
     };
 

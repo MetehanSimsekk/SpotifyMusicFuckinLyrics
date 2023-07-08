@@ -14,6 +14,7 @@ import RefreshToken from './Components/TokenTimeGoToRefreshToken/RefreshToken';
 import axiosInstance from './Components/TokenTimeGoToRefreshToken/RefreshToken';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import FlagButton from './Components/Flag';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Stack = createNativeStackNavigator();
 // const navigation =useNavigation;
 // AppRegistry.registerComponent('App', () => App);
@@ -27,7 +28,7 @@ let access_token:any;
 let device_id:any;
 let refresh_token:any;
 // axiosInstance;
-  if(Platform.OS = 'web')
+  if(Platform.OS == 'web')
   {     
     
      access_token  = window.localStorage.getItem("access_token")
@@ -35,6 +36,25 @@ let refresh_token:any;
      device_id  = window.localStorage.getItem("device_id")
 
   }
+  else if(Platform.OS == 'ios')
+    {
+    // const getData = async (key:any) => {
+    //   try {
+    //     const value = await AsyncStorage.getItem(key);
+    //     return value;
+    //   } catch (error) {
+    //     console.error('Failed to get data from AsyncStorage:', error);
+    //     return null;
+    //   }
+    // };
+    
+     access_token =  AsyncStorage.getItem('access_token');
+     alert(access_token)
+     refresh_token =  AsyncStorage.getItem('refresh_token');
+     device_id =  AsyncStorage.getItem('device_id')
+
+  }
+  
 
 
  
