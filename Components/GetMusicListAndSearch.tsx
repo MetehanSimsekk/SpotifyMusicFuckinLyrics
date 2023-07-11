@@ -29,15 +29,15 @@ let refresh_token:any ="";
 if(Platform.OS === 'web')
 {
    access_token  = window.localStorage.getItem("access_token")
-   refresh_token  = window.localStorage.getItem("refresh_token")
-  
-  device_id  = window.localStorage.getItem("device_id")
+   refresh_token  = window.localStorage.getItem("refresh_token")  
+   device_id  = window.localStorage.getItem("device_id")
 }
 else if (Platform.OS === 'ios')
 {
   AsyncStorage.getItem('access_token')
   .then(token => {
     access_token = token;
+   
     // Diğer işlemler
   })
   .catch(error => {
@@ -45,8 +45,9 @@ else if (Platform.OS === 'ios')
   });
 
 AsyncStorage.getItem('refresh_token')
-  .then(token => {
-    refresh_token = token;
+  .then(tokenz => {
+    refresh_token = tokenz;
+    alert(refresh_token)
     // Diğer işlemler
   })
   .catch(error => {
@@ -57,6 +58,7 @@ AsyncStorage.getItem('refresh_token')
 AsyncStorage.getItem('device_id')
   .then(id => {
     device_id = id;
+    alert(device_id)
     // Diğer işlemler
   })
   .catch(error => {
