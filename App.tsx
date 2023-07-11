@@ -49,9 +49,11 @@ let refresh_token:any;
     // };
     
      access_token =  AsyncStorage.getItem('access_token');
-     alert(access_token)
+    
      refresh_token =  AsyncStorage.getItem('refresh_token');
+     
      device_id =  AsyncStorage.getItem('device_id')
+    
 
   }
   

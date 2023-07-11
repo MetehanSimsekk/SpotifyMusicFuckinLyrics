@@ -25,12 +25,13 @@ let device_id:any ="";
 if(Platform.OS === 'web')
 {
 var access_token:any  = window.localStorage.getItem("access_token")
- device_id  = window.localStorage.getItem("device_id")
+device_id  = window.localStorage.getItem("device_id")
 var apiKey  = window.localStorage.getItem("apiKey")
 var apiKeyForSystran  = window.localStorage.getItem("apiKeyForSystran")
 var apiKeyForTranslate  = window.localStorage.getItem("apiKeyForTranslate")
 var baseURL  = window.localStorage.getItem("baseURL")
 }
+
 const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
 const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
 const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
@@ -40,12 +41,14 @@ const SCOPES=["user-library-read","playlist-modify-private","user-read-currently
 const spotifyApi = new SpotifyWebApi();
 
 //NOT : Şarkıya tıklanıldığında şarkının açılması
+
 spotifyApi.setAccessToken(access_token);
 
 // PUT isteği için gönderilecek parametreler
 const params = {
     "device_id": device_id
   };
+
   let isLyricsFetched = false; 
 
   const OpenMusicSelect = ({ route,navigation}:{route:any,navigation:any}) => {
@@ -73,7 +76,7 @@ const params = {
     const [DefaultLyrics, setDefaultLyrics] = useState(false);
 
 
- 
+
     const handlePositionChanged = (position: number) => {
 
       setCurrentPosition(position);
@@ -233,7 +236,7 @@ const params = {
          
           if(error=="Error: Request failed with status code 404")
           {
-            APIRun()
+            // APIRun()
           }
           else{
             
@@ -327,8 +330,6 @@ const GetTrackData = () => {
           });
         };
         
-
-
         const options = {
           apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
           title: track,
@@ -336,7 +337,7 @@ const GetTrackData = () => {
           optimizeQuery: true
         };
       
-        // Bayrak
+        
 
         if (!isLyricsFetched) {
           getLyrics(options)
@@ -389,13 +390,6 @@ async function HandleOpenSongForZeroTime(newValue:boolean) {
     throw error;
   }
 }
-
-
-
-
-
-
-
 
 
 //NOT PREMIUM

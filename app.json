@@ -4,6 +4,7 @@
     "slug": "SpotifyMusicFuckinLyrics",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "SpotifyMusicFuckinLyrics",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {

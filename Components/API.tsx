@@ -9,7 +9,8 @@ import axios from 'axios';
 const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
 const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
 const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
-const REDIRECT_URI="http://localhost:19006/callback"
+ const REDIRECT_URI="http://localhost:19006/callback"
+ const REDIRECT_URIMobile="exp://192.168.1.113:19000";
 const SCOPES=["user-read-private","user-read-email","user-library-read","playlist-modify-private","user-read-currently-playing","user-read-playback-state","user-modify-playback-state","app-remote-control","playlist-read-private"]
 // const SCOPES=["user-read-private","user-read-email","user-read-playback-state","user-modify-playback-state","user-read-currently-playing","playlist-modify-private","playlist-modify-public","playlist-read-private"]
 
@@ -24,7 +25,7 @@ let expires_in:any;
 
 const APIRun =()=>{
   
-  
+ 
   if(Platform.OS === 'web')
   {
  const urls = SPOTFY_AUTHORIZE_ENDPOINT + '?client_id=' + CLIENT_ID + '&redirect_uri=' + REDIRECT_URI + '&scope=' + SCOPES + '&response_type=code&show_dialog=true';
@@ -116,72 +117,67 @@ let token = window.localStorage.getItem("access_token")
 }
 else if(Platform.OS === 'ios')
 {
+
  
   let accessToken:any;
-  // Linking.openURL(
-  //   `${SPOTFY_AUTHORIZE_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES}&response_type=code&show_dialog=true`
-  // );
+ 
+  Linking.openURL(
+    `${SPOTFY_AUTHORIZE_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URIMobile}&scope=${SCOPES}&response_type=code&show_dialog=true`
+  );
 // Oturum açma işlemi tamamlandıktan sonra çağrılacak işlev
-// const handleCallback = (event:any) => {
-//   const { url } = event;
-//   alert("url"+url)
-//   const uri = decodeURIComponent(url);
 
-//   if (uri.startsWith('myapp://callback')) {
-//     // URI'yi işleyin ve Spotify'dan gelen erişim kodunu alın
-//     // Token isteği yapmak için erişim kodunu kullanın
-//   }
-// };
+
 
 // Geri dönüşü dinlemek için olay dinleyicisini ekle
-// Linking.addEventListener('url', handleCallback);
 
-  Linking.addEventListener('url', (event) => {
-   
-    const queryParams  = queryString.parseUrl(event.url).query;
-    alert(queryParams)
-     accessToken = queryParams.access_token as string;
-    // access token'ı kullanarak diğer işlemleri yapabilirsiniz
-  });
-  const getToken = async () => {
-
-    const token = await AsyncStorage.getItem('access_token');
-    
-    if (token==null) {
-      alert("accestoekne"+accessToken)
-      const tokenValue = accessToken
-        .substring(1)
-        .split('&')
-        .find((elem:any) => elem.startsWith('access_token'))
-        .split('=')[1];
-        alert("TokenVal"+tokenValue)
-      const tokenTypeValue = accessToken
-        .substring(1)
-        .split('&')
-        .find((elem:any) => elem.startsWith('token_type'))
-        .split('=')[1];
-        alert("token_type"+tokenTypeValue)
-
-      const expiresInValue = accessToken
-        .substring(1)
-        .split('&')
-        .find((elem:any) => elem.startsWith('expires_in'))
-        .split('=')[1];
-      await AsyncStorage.setItem('access_token', tokenValue);
-      await AsyncStorage.setItem('token_type', tokenTypeValue);
-      await AsyncStorage.setItem('expires_in', expiresInValue);
-    }
-  };
+const handleCallback = (event:any) => {
+  const { url } = event;
   
-  const handleLogin = async () => {
+  
 
-    await getToken();
-    // access token'ı kullanarak diğer işlemleri yapabilirsiniz
-  };
-  handleLogin();
+  const code = url.substring(1)
+        .split('?')
+        .find((elem:any) => elem.startsWith('code'))
+        .split('=')[1];
+
+
+        const requestData = {
+          grant_type: 'authorization_code',
+          code: code,
+          redirect_uri: REDIRECT_URIMobile,
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          };
+          const encodedData = queryString.stringify(requestData);
+          const headers = {
+           'Content-Type': 'application/x-www-form-urlencoded',
+         
+          };
+          axios.post('https://accounts.spotify.com/api/token', encodedData, { headers })
+      .then(response => {
+   
+        AsyncStorage.setItem("refresh_token",response.data.refresh_token)
+      AsyncStorage.setItem("access_token",response.data.access_token)
+      AsyncStorage.setItem("expires_in",response.data.expires_in)
+      AsyncStorage.setItem("token_type",response.data.token_type)
+      
+        // Erişim tokenı, süresi ve yenileme tokenı gibi bilgileri kullanabilirsiniz
+      })
+      .catch(error => {
+        console.log(error)
+        // Hata yönetimi Hata yönetimleri sayfa da alert olarak değil altt aline olarak kırmızı hata vericek. Tüm hatalar için geçerli
+      });
+
+ 
+
+
+};
+
+Linking.addEventListener('url', handleCallback);
+
 }
 
-      }
+}
 
    
                  
