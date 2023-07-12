@@ -15,6 +15,7 @@ import axiosInstance from './Components/TokenTimeGoToRefreshToken/RefreshToken';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import FlagButton from './Components/Flag';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { platform } from 'process';
 const Stack = createNativeStackNavigator();
 // const navigation =useNavigation;
 // AppRegistry.registerComponent('App', () => App);
@@ -38,6 +39,7 @@ let refresh_token:any;
   }
   else if(Platform.OS == 'ios')
     {
+
     // const getData = async (key:any) => {
     //   try {
     //     const value = await AsyncStorage.getItem(key);
@@ -50,11 +52,6 @@ let refresh_token:any;
     
      access_token =  AsyncStorage.getItem('access_token');
     
-     refresh_token =  AsyncStorage.getItem('refresh_token');
-     
-     device_id =  AsyncStorage.getItem('device_id')
-    
-
   }
   
 
@@ -65,26 +62,67 @@ let refresh_token:any;
 function App() {
 
   const navigationRef = useRef<NavigationContainerRef<ParamListBase>>(null);
+ 
+   //const navigationRef = React.useRef(null);
   
-  //const navigationRef = React.useRef(null);
-  
-   useEffect(() => {
-    if (access_token!=null) {
+      useEffect(() => {
+        if (access_token!="") {
+            
+          navigationRef.current?.navigate('SpotifyLikedMusicScreen');
+        } else {
+         
+          navigationRef.current?.dispatch(
+            CommonActions.navigate({     
+              name: 'Home'
+            })
+          );
+        }
+        DeviceID;
+       
+    }, []);
+    if(Platform.OS=="web")
+    {
+          if (access_token!="") {
+            
+            navigationRef.current?.navigate('SpotifyLikedMusicScreen');
+          } else {
+           
+            navigationRef.current?.dispatch(
+              CommonActions.navigate({     
+                name: 'Home'
+              })
+            );
+          }
+        }
+        else if(Platform.OS=="ios")
+        {
+          AsyncStorage.getItem('access_token')
+      .then(token => {
+        
     
-      navigationRef.current?.navigate('SpotifyLikedMusicScreen');
-      DeviceID;
-    } else {
-      navigationRef.current?.dispatch(
-        CommonActions.navigate({     
-          name: 'Home'
-        })
-      );
-    }
-  }, []);        
+        access_token = token;
+        if (access_token!=null) {
+         
+            navigationRef.current?.navigate('SpotifyLikedMusicScreen');
+            
+          } else {
+            navigationRef.current?.dispatch(
+              CommonActions.navigate({     
+                name: 'Home'
+              })
+            );
+          }
+          DeviceID;
+        // Diğer işlemler
+      })
+      .catch(error => {
+        alert(error)
+        // Hata yönetimi
+      });
+        
+        }
             // navigate to DetailsScreen on component mount
 
-
-  
   return (
     <NavigationContainer ref={navigationRef}>
   <Stack.Navigator>

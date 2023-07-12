@@ -20,34 +20,61 @@ import SystranForTranslate from './TranslateAPI/SystranForTranslate';
 import axiosInstance from './TokenTimeGoToRefreshToken/RefreshToken';
 import { ErrorModel } from './Error/ErrorModel';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let device_id:any ="";
+let access_token:any="";
+let apiKeyForSystran:any="";
 if(Platform.OS === 'web')
 {
-var access_token:any  = window.localStorage.getItem("access_token")
+ access_token= window.localStorage.getItem("access_token")
 device_id  = window.localStorage.getItem("device_id")
 var apiKey  = window.localStorage.getItem("apiKey")
-var apiKeyForSystran  = window.localStorage.getItem("apiKeyForSystran")
+ apiKeyForSystran  = window.localStorage.getItem("apiKeyForSystran")
 var apiKeyForTranslate  = window.localStorage.getItem("apiKeyForTranslate")
 var baseURL  = window.localStorage.getItem("baseURL")
 }
+if (Platform.OS === 'ios')
+{
+  AsyncStorage.getItem('access_token')
+  .then(token => {
+    access_token = token;
+ 
+    // Diğer işlemler
+  })
+  .catch(error => {
+    alert(error)
+    // Hata yönetimi
+  });
+  AsyncStorage.getItem('device_id')
+  .then(id => {
+    device_id = id;
+  
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
 
-const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
-const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
-const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
-const REDIRECT_URI="http://localhost:19006/callback"
-const SCOPES=["user-library-read","playlist-modify-private","user-read-currently-playing","user-read-playback-state","user-modify-playback-state","app-remote-control"]
+  });
+  AsyncStorage.getItem('apiKeyForSystran')
+  .then(translateLyric => {
+    apiKeyForSystran = translateLyric;
+  
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
 
+  });
+}
 const spotifyApi = new SpotifyWebApi();
+spotifyApi.setAccessToken(access_token);
 
 //NOT : Şarkıya tıklanıldığında şarkının açılması
 
-spotifyApi.setAccessToken(access_token);
+
 
 // PUT isteği için gönderilecek parametreler
-const params = {
-    "device_id": device_id
-  };
 
   let isLyricsFetched = false; 
 
@@ -203,11 +230,15 @@ const params = {
   //     title: string;		// Song title
   //     albumArt: string;	// URL of the album art image (jpg/png)
   //   }
+  const params = {
+    "device_id": device_id || "" 
+  };
 
     const HandleOpenSong = (Track: any,SongPos:number) => {
     // APIRun
-    
+   
       const data = {
+        
       // context_uri: Track.album.uri,
         uris:route.params.PathURis[0],
         offset: {
@@ -215,7 +246,6 @@ const params = {
         },
         position_ms: SongPos
       };
-
       axios
         .put(
           'https://api.spotify.com/v1/me/player/play',
@@ -236,10 +266,12 @@ const params = {
          
           if(error=="Error: Request failed with status code 404")
           {
+            alert("Hata"+error)
             // APIRun()
+          
           }
           else{
-            
+           
             axiosInstance.get("");
             
           }
@@ -419,6 +451,7 @@ const getLyricsFormat = async () => {
 
 
 const getTranslateOfLyrics = async () => {
+
   setDefaultLyrics(false)
   let originalLines =[];
   let translatedLines ="";
@@ -426,46 +459,57 @@ const getTranslateOfLyrics = async () => {
     
 
     if(lyrics!=""){
-      const requestData = {
-        input: lyrics,
-        target: LanguageSelect,
-      };
-  
-      const response = await axios.post(
-        "https://api-translate.systran.net/translation/text/translate",
-        requestData,
-        {
-          params: {
-            key: apiKeyForSystran,
-          },
+
+
+      try {
+        const requestData = {
+          input: lyrics,
+          target: LanguageSelect,
+        };
+      
+        const response = await axios.post(
+          "https://api-translate.systran.net/translation/text/translate",
+          requestData,
+          {
+            params: {
+              key: apiKeyForSystran ,
+            },
+          }
+        );
+      
+        const translatedText = response.data.outputs[0].output;
+      
+        const originalLines = lyrics
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+      
+        const translatedLines = translatedText
+          .split("\n")
+          .map((line:any) => line.trim())
+          .filter((line:any) => line.length > 0);
+      
+        const maxLength = Math.max(originalLines.length, translatedLines.length);
+      
+        const alignedLines = [];
+        for (let i = 0; i < maxLength; i++) {
+          const originalLine = originalLines[i] || "";
+          const translatedLine = translatedLines[i] || "";
+      
+          alignedLines.push(originalLine, translatedLine);
         }
-      );
-  
-      const translatedText = response.data.outputs[0].output;
-    
-       originalLines = lyrics.split("\n").map((line) => line.trim()).filter((line) => line.length > 0 );
-  
-       translatedLines = translatedText.split("\n").map((line:any) => line.trim()).filter((line:any) => line.length > 0);
-   
-     
-  
-      const maxLength = Math.max(originalLines.length, translatedLines.length);
-  
-      const alignedLines = [];
-      for (let i = 0; i < maxLength; i++) {
-        const originalLine = originalLines[i] || "";
-        const translatedLine = translatedLines[i] || "";
-  
-        alignedLines.push(originalLine, translatedLine);
+      
+        const alignedText = alignedLines.join("\n");
+      
+        setTranslateOfLyrics(alignedText.trim());
+      } catch (error:any) {
+        alert("Hata:"+ error);
+        // Hata yönetimini burada gerçekleştirin veya hata durumunu kullanıcıya bildirin
       }
-  
-  const alignedText = alignedLines.join("\n");
-  
-      setTranslateOfLyrics(alignedText.trim());
-  
   
     }
   else{
+    
     setDefaultLyrics(true)
   }
   }

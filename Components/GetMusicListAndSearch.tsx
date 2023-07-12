@@ -24,12 +24,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 let device_id:any ="";
 let access_token:any ="";
 let refresh_token:any ="";
-
+let expires_in:number;
 
 if(Platform.OS === 'web')
 {
    access_token  = window.localStorage.getItem("access_token")
    refresh_token  = window.localStorage.getItem("refresh_token")  
+   
    device_id  = window.localStorage.getItem("device_id")
 }
 else if (Platform.OS === 'ios')
@@ -37,7 +38,7 @@ else if (Platform.OS === 'ios')
   AsyncStorage.getItem('access_token')
   .then(token => {
     access_token = token;
-   
+    alert(access_token)
     // Diğer işlemler
   })
   .catch(error => {
@@ -59,6 +60,17 @@ AsyncStorage.getItem('device_id')
   .then(id => {
     device_id = id;
     alert(device_id)
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
+
+  });
+  AsyncStorage.getItem('expires_in')
+  .then(id => {
+    
+      expires_in= Number(id);
+
     // Diğer işlemler
   })
   .catch(error => {
@@ -137,7 +149,7 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
             uris.push(allLikedSongs.map((item:any) => item.track.uri)); //Yalnızca item verileri içierisndne item track uriyi alır
           
           setUris(uris);
-          console.log(uris)
+        //  console.log(uris)
         }
       }
     } catch (error:any) {
@@ -186,7 +198,7 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
   //  GetTrackData();
   
   
-  
+ 
 getLikedSongs(access_token);
 }, []);
  // Verileri yükleme işlevi
