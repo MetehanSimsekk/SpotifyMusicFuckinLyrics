@@ -5,7 +5,7 @@ import axiosInstance from "./TokenTimeGoToRefreshToken/RefreshToken";
 import { Platform } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { platform } from "os";
-
+import APIRun from "./API";
 let accessToken:any
 let accessTokenOnMobile:any;
  let device_id:any;
@@ -16,17 +16,23 @@ let accessTokenOnMobile:any;
 }
 else if(Platform.OS === 'ios')
 {
-  AsyncStorage.getItem('access_token')
+  AsyncStorage.getItem('device_id')
   .then(token => {
     accessTokenOnMobile = token;
+   
+
+    if(accessTokenOnMobile==null)
+    {
+     
     GetDeviceID()
-    // Diğer işlemler
+    }// Diğer işlemler
   })
   .catch(error => {
     // Hata yönetimi
   });
 }
  function GetDeviceID() {
+  
   if (accessToken !== null) {
    
     if (Platform.OS === 'web') {
@@ -72,16 +78,15 @@ else if(Platform.OS === 'ios')
         )
           .then(res => {
           
-          alert(res.data.devices[0].id)
             AsyncStorage.setItem("device_id", res.data.devices[0].id);
           })
           .catch(error => {
-            console.log("error" + error);
+       
             if (error === "TypeError: Cannot read properties of undefined (reading 'id') ") {
              
             } else {
             
-              alert(error)
+              //  APIRun()
               // alert("Hata Apptsx : " + error);
               // axiosInstance.get("");
               // İstek başarılı olduğunda response kullanılabilir
@@ -94,3 +99,5 @@ else if(Platform.OS === 'ios')
   }
 }
 export default GetDeviceID();
+
+

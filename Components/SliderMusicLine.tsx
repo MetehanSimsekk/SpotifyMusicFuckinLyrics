@@ -45,7 +45,7 @@ else if(Platform.OS=="ios")
     }
   },[RestartPosition]);
 
-  const handlePositionChange = (value:any) => {
+  const handlePositionChange = (value:number) => {
     console.log("handlePositionChange - value:", value);
     console.log(RestartPosition)
 
@@ -53,6 +53,7 @@ else if(Platform.OS=="ios")
 
   setPosition(value);
   if (onPositionChanged) {
+    console.log(value)
     onPositionChanged(value);
   }
 

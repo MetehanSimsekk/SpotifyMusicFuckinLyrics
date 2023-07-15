@@ -66,8 +66,16 @@ function App() {
    //const navigationRef = React.useRef(null);
   
       useEffect(() => {
+       
+       
+        if (Platform.OS==='ios'){
+          AsyncStorage.getItem('access_token')
+      .then(token => {
+       
+        access_token =token
+      
         if (access_token!="") {
-            
+          
           navigationRef.current?.navigate('SpotifyLikedMusicScreen');
         } else {
          
@@ -75,53 +83,70 @@ function App() {
             CommonActions.navigate({     
               name: 'Home'
             })
-          );
-        }
-        DeviceID;
-       
-    }, []);
-    if(Platform.OS=="web")
-    {
-          if (access_token!="") {
-            
-            navigationRef.current?.navigate('SpotifyLikedMusicScreen');
-          } else {
-           
-            navigationRef.current?.dispatch(
-              CommonActions.navigate({     
-                name: 'Home'
-              })
             );
-          }
+          }})
         }
-        else if(Platform.OS=="ios")
+        else if(Platform.OS=='web')
         {
-          AsyncStorage.getItem('access_token')
-      .then(token => {
-        
-    
-        access_token = token;
-        if (access_token!=null) {
-         
-            navigationRef.current?.navigate('SpotifyLikedMusicScreen');
+          if (access_token!=null) {
             
-          } else {
-            navigationRef.current?.dispatch(
-              CommonActions.navigate({     
-                name: 'Home'
-              })
-            );
-          }
-          DeviceID;
-        // Diğer işlemler
-      })
-      .catch(error => {
-        alert(error)
-        // Hata yönetimi
-      });
-        
+                    navigationRef.current?.navigate('SpotifyLikedMusicScreen');
+                  } else {
+                   
+                    navigationRef.current?.dispatch(
+                      CommonActions.navigate({     
+                        name: 'Home'
+                      })
+                    );
+                  }
         }
-            // navigate to DetailsScreen on component mount
+       
+        
+          
+          DeviceID;
+        }, []);
+    // if(Platform.OS=="web")
+    // {
+    //       if (access_token!="") {
+            
+    //         navigationRef.current?.navigate('SpotifyLikedMusicScreen');
+    //       } else {
+           
+    //         navigationRef.current?.dispatch(
+    //           CommonActions.navigate({     
+    //             name: 'Home'
+    //           })
+    //         );
+    //       }
+    //     }
+    //     else if(Platform.OS=="ios")
+    //     {
+    //       AsyncStorage.getItem('access_token')
+    //   .then(token => {
+        
+    // alert(access_token)
+    //     access_token = token;
+    //     if (access_token!=undefined) {
+         
+    //         navigationRef.current?.navigate('SpotifyLikedMusicScreen');
+            
+    //       } else {
+    //         navigationRef.current?.dispatch(
+    //           CommonActions.navigate({     
+    //             name: 'Home'
+    //           })
+    //         );
+    //       }
+    //       DeviceID;
+    //     // Diğer işlemler
+    //   })
+    //   .catch(error => {
+    //     alert(error)
+    //     // Hata yönetimi
+    //   });
+        
+    //     }
+    //         // navigate to DetailsScreen on component mount
 
   return (
     <NavigationContainer ref={navigationRef}>

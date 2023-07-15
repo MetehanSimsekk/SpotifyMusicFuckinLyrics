@@ -38,7 +38,6 @@ else if (Platform.OS === 'ios')
   AsyncStorage.getItem('access_token')
   .then(token => {
     access_token = token;
-    alert(access_token)
     // Diğer işlemler
   })
   .catch(error => {
@@ -48,7 +47,6 @@ else if (Platform.OS === 'ios')
 AsyncStorage.getItem('refresh_token')
   .then(tokenz => {
     refresh_token = tokenz;
-    alert(refresh_token)
     // Diğer işlemler
   })
   .catch(error => {
@@ -59,7 +57,6 @@ AsyncStorage.getItem('refresh_token')
 AsyncStorage.getItem('device_id')
   .then(id => {
     device_id = id;
-    alert(device_id)
     // Diğer işlemler
   })
   .catch(error => {
@@ -114,7 +111,6 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
 
     // Diğer şarkı özellikleri
   }
-  
   async function getLikedSongs(access_token: string): Promise<any> {
     const url = 'https://api.spotify.com/v1/me/tracks';
     const headers = {
@@ -147,10 +143,13 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
           const uris:any=[];
          
             uris.push(allLikedSongs.map((item:any) => item.track.uri)); //Yalnızca item verileri içierisndne item track uriyi alır
-          
+
+           
           setUris(uris);
-        //  console.log(uris)
+        
+
         }
+        
       }
     } catch (error:any) {
       if(error=="Error: Request failed with status code 404")
@@ -158,13 +157,11 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
             APIRun()
           }
           else{
-            axiosInstance.get("");
+           axiosInstance.get("");
             
           }
-      // axiosInstance.get("")
     }
   
-    // return allLikedSongs;
   }
   
   // Örnek kullanım
@@ -186,8 +183,8 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
   //         }
   //       );
   //       setPlaylist(result.data.items);
-  //       console.log(result.data.items)
   //      const uris = result.data.items.map((item:any) => item.track.uri); //Yalnızca item verileri içierisndne item track uriyi alır
+
   //     setUris(uris);
         
   //     } catch (error) {
@@ -196,7 +193,7 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
   //     }
   //   };
   //  GetTrackData();
-  
+   
   
  
 getLikedSongs(access_token);
@@ -264,7 +261,7 @@ getLikedSongs(access_token);
   const filteredPlaylist = filterData(playlist, searchQuery);
 
   return (
-    <View>
+    <View  >
       <Text>Search:</Text>
       {/* <Searchbar
         placeholder="Search"
@@ -275,7 +272,7 @@ getLikedSongs(access_token);
         data={letQuery==undefined || letQuery==""?playlist:search}
         renderItem={(RenderItem)}
       /> */}
-        <Searchbar
+        <Searchbar 
         placeholder="Search"
         onChangeText={updateSearch}
         value={searchQuery}
@@ -283,6 +280,8 @@ getLikedSongs(access_token);
       <FlatList
         data={filteredPlaylist}
         renderItem={RenderItem}
+    
+        contentContainerStyle={styles.containerz}
       />
     </View>
   );
@@ -294,6 +293,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  containerz: {
+    flexGrow: 1
+  
   },
   sliderContainer: {
     flex: 1,

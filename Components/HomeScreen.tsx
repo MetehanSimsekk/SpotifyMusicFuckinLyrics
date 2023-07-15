@@ -35,7 +35,7 @@ function HomeScreen() {
     setIsPressed(false);
   };
   const colorAnimation = useRef(new Animated.Value(0)).current;
-
+  const learnAnimation = useRef(new Animated.Value(0)).current;
   // useEffect(() => {
   //   if (renderCount > 1) {
   //     RefreshToken();
@@ -73,7 +73,19 @@ function HomeScreen() {
           duration: 2000,
           useNativeDriver: false,
         }),
+        Animated.timing(learnAnimation, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: false,
+        }),
+        Animated.timing(learnAnimation, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: false,
+        }),
+       
       ])
+      
     ).start();
   }, []);
   const backgroundColor = colorAnimation.interpolate({
@@ -88,19 +100,20 @@ function HomeScreen() {
     inputRange: [0, 1],
     outputRange: ["black", "orange"],
   });
+
+  const learnOpacity = learnAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+
   APIforMusixMatch;
   GoogleTranslate;
   SystranForTranslate;
   return (
     <Animated.View style={[styles.container, { backgroundColor }]}>
       <View style={styles.titleContainer}>
-        <Text style={styles.titleText}>O</Text>
-        <Text style={styles.titleText}>R</Text>
-        <Text style={styles.titleText}>A</Text>
-        <Text style={styles.titleText}>N</Text>
-        <Text style={styles.titleText}>G</Text>
-        <Text style={styles.titleText}>E</Text>
-        <Text style={styles.titleText}>R</Text>
+        <Text style={styles.titleText}>ORANGER</Text>
+       
       </View>
        <Image
           source={require("../assets/spotify_logo.png")} // Spotify logosunun dosya yolu
@@ -119,6 +132,7 @@ function HomeScreen() {
         ]}>Connect with Spotify</Animated.Text>
       </Animated.View>
       </TouchableOpacity>
+      {/* <Animated.Text style={[styles.learnText, { opacity: learnOpacity }]}>Enjoy the music, Listen to different languages, Translate the lyrics</Animated.Text> */}
     </Animated.View>
   );
 }
@@ -129,7 +143,7 @@ export default HomeScreen;
 //Styles
 const { width, height } = Dimensions.get('window') ;
   
-fontSizeRatio = Math.min(width, height) / 4.6 ;
+fontSizeRatio = Math.min(width, height) / 7.2 ;
 const connectTextHeight = height * 0.054; 
 const connectTextWidth = width * 0.6; 
 
@@ -138,6 +152,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  learnText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "white",
+    marginTop: 140,
+    fontFamily: "Papyrus",
   },
   title: {
     fontSize: 24,
@@ -179,13 +200,10 @@ const styles = StyleSheet.create({
    
   },
   titleContainer: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    position: 'absolute', // Mutlaka ekleyin
+    flexDirection: "column",    
+    marginTop: 0,   
     zIndex: -1, // Mutlaka ekleyin
-   
+     
 
   },
 
@@ -193,8 +211,9 @@ const styles = StyleSheet.create({
     fontSize: fontSizeRatio, // Yazı boyutunu istediğiniz gibi ayarlayın
     color: "white",
     textAlign: "center",
-    fontFamily: "Chalkduster", // Kullanmak istediğiniz yazı tipini belirleyin
-    textTransform: "uppercase", 
+    fontFamily: "GillSans-UltraBold", // Kullanmak istediğiniz yazı tipini belirleyin
+    
+
   },
   connectText: {
     // Spotify green color

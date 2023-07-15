@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SliderPosition from "./SliderMusicLine";
 import { useEffect, useState ,useRef} from 'react';
-import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight } from 'react-native';
+import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,Pressable } from 'react-native';
 import Slider from "@react-native-community/slider";
 import { ArtistNames } from '../Models/artistModel';
 import DualSlider from "../Components/SliderEffectsReal";
@@ -102,10 +102,26 @@ spotifyApi.setAccessToken(access_token);
     const [LanguageSelect, setLanguageSelect] = useState("");
     const [DefaultLyrics, setDefaultLyrics] = useState(false);
 
+    const [isFirstButtonEnabled, setIsFirstButtonEnabled] = useState(true);
+    const [isSecondButtonEnabled, setIsSecondButtonEnabled] = useState(false);
+  
+
+
+    const handleLongPressFirstButton = () => {
+      console.log("ss")
+      // setIsFirstButtonEnabled(false);
+      // setIsSecondButtonEnabled(true);
+    };
+  
+    const handleLongPressSecondButton = () => {
+      setIsFirstButtonEnabled(true);
+      setIsSecondButtonEnabled(false);
+    };
+
 
 
     const handlePositionChanged = (position: number) => {
-
+ 
       setCurrentPosition(position);
             
     };
@@ -154,15 +170,16 @@ spotifyApi.setAccessToken(access_token);
      
     }
     const msToTime = (ms: any) => {
-      const minutes = Math.floor(ms / 60000);
-      let seconds = Math.floor(((ms % 60000) / 1000)); // here is the change
-
-      return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+      
+        const minutes = Math.floor(ms / 60000);
+        const seconds = Math.floor((ms % 60000) / 1000);
+        return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+      
     };
     const msToTimeLast = (ms: any) => {
+     
       const minutes = Math.floor(ms / 60000);
       let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
-
       return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
     };
     const currentlyPlayingGetPosition = async () => {
@@ -205,31 +222,8 @@ spotifyApi.setAccessToken(access_token);
 
    
    
-  //   type song ={
-  //     id: number;		// Genius song id
-  //     title: string;          // Song title
-  //     url: string;		// Genius webpage URL for the song
-  //     lyrics: string;		// Song lyrics
-  //     albumArt: string;	// URL of the album art image (jpg/png)
-  //   }
-    
-  // getSong(options)
-  //   .then((song:song) => console.log(`${song.id} - ${song.title} - ${song.url} - ${song.albumArt} - ${song.lyrics}`));
-  
-  //   type options ={
-  //     title: string;
-  //     artist: string;
-  //     apiKey: string;		// Genius developer access token
-  //     optimizeQuery?: boolean; // (optional, default: false) If true, Perform some cleanup to maximize the chance of finding a match
-  //     authHeader?: boolean; // (optional, default: false) Whether to include auth header in the search request
-  //   }
-    
-  //   type searchResult = {
-  //     id: number;		// Genius song id
-  //     url: string;		// Genius webpage URL for the song
-  //     title: string;		// Song title
-  //     albumArt: string;	// URL of the album art image (jpg/png)
-  //   }
+ 
+ 
   const params = {
     "device_id": device_id || "" 
   };
@@ -266,8 +260,8 @@ spotifyApi.setAccessToken(access_token);
          
           if(error=="Error: Request failed with status code 404")
           {
-            alert("Hata"+error)
-            // APIRun()
+            alert("Please Open Your Spotify App On Mobile")
+            
           
           }
           else{
@@ -291,14 +285,7 @@ spotifyApi.setAccessToken(access_token);
         },
       }
     );
-    console.log('Şarkı durduruldu.');
-    // const result = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
-    //   headers: {
-    //     'Authorization': 'Bearer ' + access_token
-    //   }
-    // });
-
-  //  setPosition(result.data.progress_ms);
+   
   } catch (error) {
     console.error('Hata:', error);
   
@@ -503,7 +490,7 @@ const getTranslateOfLyrics = async () => {
       
         setTranslateOfLyrics(alignedText.trim());
       } catch (error:any) {
-        alert("Hata:"+ error);
+        console.log("Lyrics not loading")
         // Hata yönetimini burada gerçekleştirin veya hata durumunu kullanıcıya bildirin
       }
   
@@ -547,13 +534,13 @@ const getTranslateOfLyrics = async () => {
     useEffect(() => {
 
       if (trackId) {
-        getLyrics();
+        // getLyrics();
         
       }
     }, [trackId]);
 
     useEffect(() => {
-      getTranslateOfLyrics(); 
+      // getTranslateOfLyrics(); 
     
     }, [LanguageSelect]);
 
@@ -615,14 +602,15 @@ const getTranslateOfLyrics = async () => {
 
     return (
       <View>
-        <TouchableOpacity style={{margin:5,width: 200 }}>
+       
+        <TouchableOpacity style={{margin:5,width: 200 }}> 
  <SelectList 
-        setSelected={(val:any) => 
-          {
-            setLanguageSelect(val)
-            
-          }
-        
+        setSelected={(val:any) => //OnlyPremium------------------------------------
+          {//OnlyPremium------------------------------------
+            setLanguageSelect(val)//OnlyPremium------------------------------------
+            //OnlyPremium------------------------------------
+          }//OnlyPremium------------------------------------
+        //OnlyPremium------------------------------------
         } 
         data={data} 
         save="key"
@@ -665,16 +653,20 @@ const getTranslateOfLyrics = async () => {
         <Text>{"Geri"}</Text>
 
          </TouchableOpacity>
-     <TouchableOpacity>
+     
      <Text>{msToTime(currentPosition)}</Text>
+    <Text>{msToTimeLast(durationFullTimeOfSong)}</Text>
+    <Pressable onLongPress={handleLongPressFirstButton}>
      <SliderPosition isPlaying={isPlaying}
     Duration={durationFullTimeOfSong} RestartPosition={RestartPosition} HandleOpenSongForZeroTime={HandleOpenSongForZeroTime}  itemIdOpen={itemIdOpen} isFirstTime={isFirstTime} 
     currentPosition={currentPosition} onPositionChanged={handlePositionChanged} renderTrigger={renderTrigger} skipToNextTrack={skipToNextTrack}/>
+     
+    </Pressable>
+    <TouchableOpacity disabled={!isSecondButtonEnabled} onLongPress={handleLongPressSecondButton}>
+ 
 
-    <Text>{msToTimeLast(durationFullTimeOfSong)}</Text>
-    </TouchableOpacity>
-    <TouchableOpacity>
-        <DualSlider  />
+        {/* <DualSlider  /> */}
+        
         <TouchableOpacity style={styles.circleButton} onPress={()=>HandleOpenSongForZeroTime(true)}>
       <AntDesign name="close" style={styles.button}  size={24} color="black" />
    
@@ -685,6 +677,7 @@ const getTranslateOfLyrics = async () => {
     );
   };
   const styles = StyleSheet.create({
+    
     circleButton: {
       width: 50,
       height: 50,
