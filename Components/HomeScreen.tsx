@@ -65,24 +65,15 @@ function HomeScreen() {
       Animated.sequence([
         Animated.timing(colorAnimation, {
           toValue: 1,
-          duration: 2000,
+          duration: 1000,
           useNativeDriver: false,
         }),
         Animated.timing(colorAnimation, {
           toValue: 0,
-          duration: 2000,
+          duration: 3000,
           useNativeDriver: false,
         }),
-        Animated.timing(learnAnimation, {
-          toValue: 1,
-          duration: 2000,
-          useNativeDriver: false,
-        }),
-        Animated.timing(learnAnimation, {
-          toValue: 0,
-          duration: 2000,
-          useNativeDriver: false,
-        }),
+        
        
       ])
       

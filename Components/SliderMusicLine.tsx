@@ -8,26 +8,23 @@ import RangeSlider from './RangeSlider';
 import { platform } from 'os';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-let access_token:any="";
+let access_token="";
 
-const SliderPosition =  ({ isPlaying ,currentPosition, RestartPosition, HandleOpenSongForZeroTime,onPositionChanged ,Duration, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack}:{isPlaying:any,currentPosition:number,RestartPosition:any, HandleOpenSongForZeroTime:any,onPositionChanged:any,Duration:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void}) => {
+const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTime,onPositionChanged ,Duration, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack }:{isPlaying:any,RestartPosition:any, HandleOpenSongForZeroTime:any,onPositionChanged:any,Duration:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void}) => {
 
 
-  if(Platform.OS=="web"){
-   access_token = window.localStorage.getItem("access_token");
-}
-else if(Platform.OS=="ios")
-{
-  AsyncStorage.getItem('access_token')
-  .then(token => {
-    access_token = token;
-   
-    // Diğer işlemler
-  })
-  .catch(error => {
-    // Hata yönetimi
-  });
-}
+  if (Platform.OS === "web") {
+    access_token = window.localStorage.getItem("access_token") || "";
+  } else if (Platform.OS === "ios") {
+    AsyncStorage.getItem("access_token")
+      .then((token) => {
+        access_token = token || "";
+        // Diğer işlemler
+      })
+      .catch((error) => {
+        // Hata yönetimi
+      });
+  }
   const [intervalId, setIntervalId] = useState<any>(null); 
   const [position, setPosition] = useState(0);
   const [StatusrenderTrigger, setrenderTrigger] = useState(false);
@@ -46,23 +43,21 @@ else if(Platform.OS=="ios")
   },[RestartPosition]);
 
   const handlePositionChange = (value:number) => {
-    console.log("handlePositionChange - value:", value);
-    console.log(RestartPosition)
+    // console.log("handlePositionChange - value:", value);
+    
+     setPosition(value);
 
-
-
-  setPosition(value);
-  if (onPositionChanged) {
-    console.log(value)
-    onPositionChanged(value);
-  }
+     if (onPositionChanged) {
+      console.log(value)
+      onPositionChanged(value);
+    }
 
     
 
 
   };
 
-  
+
 
   const TimerPosition = async () => {
     try {
@@ -98,7 +93,6 @@ else if(Platform.OS=="ios")
           const newPosition = prevPosition + 1000;
           if (newPosition >= Duration) {
            
-        
             skipToNextTrack();
             clearInterval(id);
           } else {

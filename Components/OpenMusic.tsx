@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SliderPosition from "./SliderMusicLine";
-import { useEffect, useState ,useRef} from 'react';
+import { useEffect, useState ,useRef,useContext} from 'react';
 import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,Pressable } from 'react-native';
 import Slider from "@react-native-community/slider";
 import { ArtistNames } from '../Models/artistModel';
@@ -34,38 +34,37 @@ var apiKey  = window.localStorage.getItem("apiKey")
 var apiKeyForTranslate  = window.localStorage.getItem("apiKeyForTranslate")
 var baseURL  = window.localStorage.getItem("baseURL")
 }
-if (Platform.OS === 'ios')
-{
+if (Platform.OS === 'ios') {
   AsyncStorage.getItem('access_token')
-  .then(token => {
-    access_token = token;
- 
-    // Diğer işlemler
-  })
-  .catch(error => {
-    alert(error)
-    // Hata yönetimi
-  });
+    .then(token => {
+      access_token = token;
+      // Diğer işlemler
+    })
+    .catch(error => {
+    
+
+      console.error(error);
+      // Hata yönetimi
+    });
+
   AsyncStorage.getItem('device_id')
-  .then(id => {
-    device_id = id;
-  
-    // Diğer işlemler
-  })
-  .catch(error => {
-    // Hata yönetimi
+    .then(id => {
+      device_id = id;
+      // Diğer işlemler
+    })
+    .catch(error => {
 
-  });
+      console.error(error);
+    });
+
   AsyncStorage.getItem('apiKeyForSystran')
-  .then(translateLyric => {
-    apiKeyForSystran = translateLyric;
-  
-    // Diğer işlemler
-  })
-  .catch(error => {
-    // Hata yönetimi
-
-  });
+    .then(apiKey => {
+      apiKeyForSystran = apiKey;
+      // Diğer işlemler
+    })
+    .catch(error => {
+     console.error(error);
+    });
 }
 const spotifyApi = new SpotifyWebApi();
 spotifyApi.setAccessToken(access_token);
@@ -76,14 +75,14 @@ spotifyApi.setAccessToken(access_token);
 
 // PUT isteği için gönderilecek parametreler
 
-  let isLyricsFetched = false; 
+ 
 
   const OpenMusicSelect = ({ route,navigation}:{route:any,navigation:any}) => {
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [playlist, setPlaylist] = useState<ArtistNames[]>([]);
-    const [currentPosition, setCurrentPosition] = useState(0);
+    // const [currentPosition, setCurrentPosition] = useState(0);
     const [position, setPosition] = useState(0);
     const [durationFullTimeOfSong, setDuration] = useState(0);
     const [intervalId, setIntervalId] = useState<any>(null);
@@ -91,7 +90,7 @@ spotifyApi.setAccessToken(access_token);
     const clickTimeout = useRef(null);
     const [artist, setArtist] = useState("");
     const [track, setTrack] = useState("");
-    const [trackId, setTrackId] = useState("");
+    // const [trackId, setTrackId] = useState("");
     const [lyrics, setLyrics] = useState('');
     const [TranslateOflyrics, setTranslateOfLyrics] = useState('');
     const [itemIdCrr, setitemIdWithCurrPlaying] = useState('');
@@ -101,12 +100,11 @@ spotifyApi.setAccessToken(access_token);
     const [RestartPosition, setRestartPosition] = useState(false);
     const [LanguageSelect, setLanguageSelect] = useState("");
     const [DefaultLyrics, setDefaultLyrics] = useState(false);
-
+    const [isLyricsFetched, setIsLyricsFetched] = useState(false);
     const [isFirstButtonEnabled, setIsFirstButtonEnabled] = useState(true);
     const [isSecondButtonEnabled, setIsSecondButtonEnabled] = useState(false);
-  
-
-
+    let [remainingTime, setRemainingTime] = useState(0);  
+    const [currentPosition, setCurrentPosition] = useState(0);
     const handleLongPressFirstButton = () => {
       console.log("ss")
       // setIsFirstButtonEnabled(false);
@@ -121,31 +119,39 @@ spotifyApi.setAccessToken(access_token);
 
 
     const handlePositionChanged = (position: number) => {
- 
-      setCurrentPosition(position);
-            
+
+      
+      setCurrentPosition(position)
     };
 
   
     const play = () => {
-
+      
+    
      handlePositionChanged(currentPosition);
+     
         HandleOpenSong(playlist[0], currentPosition); //İlk defa oynatılıyorsa, position değeri ile çağırın.
        
         setIsPlaying(true);   
       
-    };
-
+    const newIntervalId = setInterval(() => {
+      setCurrentPosition(currentPosition => currentPosition + 1000);
+    }, 1000);
+   
+    setIntervalId(newIntervalId);
+    
+  }
     const pause = () => {
       PauseMusic();
      setIsPlaying(false);
-   setIntervalId("")
-    clearInterval(intervalId);
+     clearInterval(intervalId);
+     setIntervalId(null);
     };
 
     function skipToNextTrack() {
-      
-  
+      setCurrentPosition(0)
+      setDefaultLyrics(true)
+    
       // Increment the index for next song
       route.params.index++;     
     
@@ -157,6 +163,8 @@ spotifyApi.setAccessToken(access_token);
     function skipToPreviousTrack() {
       if(route.params.index!=0)
       {
+        setCurrentPosition(0)
+        setDefaultLyrics(true)
         route.params.index--;
         GetTrackData();
         setRenderTrigger(!renderTrigger)
@@ -169,15 +177,48 @@ spotifyApi.setAccessToken(access_token);
       // Fetch the data for the next song
      
     }
+   
+    
+      
+    // useEffect(() => {
+    
+      
+    
+    //     const timer = setInterval(() => {
+    //       setRemainingTime(prevTime => prevTime + 1);
+    //     }, 1000);
+  
+    //     return () => {
+    //       clearInterval(timer);
+    //     };
+    // }, [durationFullTimeOfSong]);
+  
+    // const formatTime = (remainingTime:any) => {
+    //   const minutes = Math.floor(remainingTime / 60);
+    //   const seconds = remainingTime % 60;
+    //   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    // };
+    
+    useEffect(() => {
+      const intervalId = setInterval(() => {
+        setCurrentPosition(prevPosition => prevPosition + 1000);
+      }, 1000);
+  
+      setIntervalId(intervalId);
+
+      return () => {
+        clearInterval(intervalId);
+      };
+    }, []);
+  
+
     const msToTime = (ms: any) => {
-      
-        const minutes = Math.floor(ms / 60000);
-        const seconds = Math.floor((ms % 60000) / 1000);
-        return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-      
+      const minutes = Math.floor(ms / 60000);
+      let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
+      return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
     };
     const msToTimeLast = (ms: any) => {
-     
+      
       const minutes = Math.floor(ms / 60000);
       let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
       return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
@@ -197,17 +238,6 @@ spotifyApi.setAccessToken(access_token);
        const itemId = result.data.item.id
        setitemIdWithCurrPlaying(itemId)
        setPosition(positionMs);
-        console.log(`Current position: ${positionMs}, Duration: ${tracksDurationMS}`);
-
-
-
-
-          // const id = setInterval(() => {
-          //   setPosition((positionMs) => positionMs +1000);
-          // }, 1000);
-          // setIntervalId(id);
-
-
 
 
 
@@ -227,7 +257,7 @@ spotifyApi.setAccessToken(access_token);
   const params = {
     "device_id": device_id || "" 
   };
-
+  
     const HandleOpenSong = (Track: any,SongPos:number) => {
     // APIRun
    
@@ -294,28 +324,28 @@ spotifyApi.setAccessToken(access_token);
 }
 
 
-const  getTrackId = () => {
+// const  getTrackId = () => {
 
-  axios
-    .get(`https://api.musixmatch.com/ws/1.1/track.search`, {
-      params: {
-        q_artist: artist,
-        q_track: track,
-        apikey:apiKey
-      },
-    })
-    .then(response => {
+//   axios
+//     .get(`https://api.musixmatch.com/ws/1.1/track.search`, {
+//       params: {
+//         q_artist: artist,
+//         q_track: track,
+//         apikey:apiKey
+//       },
+//     })
+//     .then(response => {
 
-      setTrackId(response.data.message.body.track_list[0].track.track_id);
-    })
-    .catch(error => {
-      console.error(error);
-    });
-};
+//       // setTrackId(response.data.message.body.track_list[0].track.track_id);
+//     })
+//     .catch(error => {
+//       console.error(error);
+//     });
+// };
 
 
 const GetTrackData = () => {
-      const trackIdOnSpotify = route.params.DataItems[route.params.index].track.id;
+      const trackIdOnSpotify:string = route.params.DataItems[route.params.index].track.id;
         axios
           .get(
 
@@ -330,10 +360,11 @@ const GetTrackData = () => {
             }
               )
           .then(result => {
-            isLyricsFetched = false
+             setIsLyricsFetched(false)
             setPlaylist([result.data]);
             setDuration(result.data.duration_ms);
-            setArtist(result.data.artists[0].name);            
+            setArtist(result.data.artists[0].name);          
+            
             setTrack(result.data.name);
             setitemIdWithOpenSong(result.data.id)
             HandleOpenSong(result.data,0);
@@ -343,31 +374,49 @@ const GetTrackData = () => {
           })
           .catch(error => {
             console.log("An error occurred while fetching the playlist:", error);
-            window.localStorage.setItem("access_token", "");
-            alert("Token süresi doldu")
-            axiosInstance
+            if(Platform.OS==='web')
+            {
+
+              window.localStorage.setItem("access_token", '');
+            }
+            else if(Platform.OS==='ios')
+            {
+              AsyncStorage.setItem("access_token", '')
+            }
+           
+            axiosInstance.get("")
           });
         };
         
         const options = {
           apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
-          title: track,
+         title: track,        
           artist: artist,
           optimizeQuery: true
         };
       
         
 
+        // if (!isLyricsFetched) {
+        //   getLyrics(options)
+        //     .then((lyrics:any) => {
+        //       const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '');            
+
+        //       setLyrics(lyricsWithoutBrackets);
+              
+        //       setIsLyricsFetched(true) // Bayrağı etkinleştir
+        //     });
+        // }
         if (!isLyricsFetched) {
           getLyrics(options)
-            .then((lyrics:any) => {
-              const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '');            
-
-              setLyrics(lyricsWithoutBrackets);
-              isLyricsFetched = true; // Bayrağı etkinleştir
+            .then((lyrics: any) => {
+              if (lyrics) { // lyrics değeri null değilse replace metodunu çağır
+                const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '');
+                setLyrics(lyricsWithoutBrackets);
+              }
+              setIsLyricsFetched(true); // Bayrağı etkinleştir
             });
         }
-
 const handleOpenSongForTimeWithSwitch = async () => {
   
   try {
@@ -411,40 +460,40 @@ async function HandleOpenSongForZeroTime(newValue:boolean) {
 }
 
 
-//NOT PREMIUM
-const getLyricsFormat = async () => {
-  try {
-    const response = await axios.get(`https://api.musixmatch.com/ws/1.1/track.lyrics.get`, {
-      params: {
-        track_id: trackId,
-        apikey: apiKey,
-      },
-    });
-    const fullLyrics = response.data.message.body.lyrics.lyrics_body;
-    const cutOffIndex = fullLyrics.indexOf('...');
+// //NOT PREMIUM
+// const getLyricsFormat = async () => {
+//   try {
+//     const response = await axios.get(`https://api.musixmatch.com/ws/1.1/track.lyrics.get`, {
+//       params: {
+//         track_id: trackId,
+//         apikey: apiKey,
+//       },
+//     });
+//     const fullLyrics = response.data.message.body.lyrics.lyrics_body;
+//     const cutOffIndex = fullLyrics.indexOf('...');
    
-    if (cutOffIndex !== -1) {
-      setLyrics(fullLyrics.slice(0, cutOffIndex));
+//     if (cutOffIndex !== -1) {
+//       setLyrics(fullLyrics.slice(0, cutOffIndex));
 
-    } else {
-      setLyrics(fullLyrics);
+//     } else {
+//       setLyrics(fullLyrics);
 
 
-    }
-  } catch (error) {
-    console.error(error);
-  }
-};
+//     }
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };
 
 
 const getTranslateOfLyrics = async () => {
-
+  
   setDefaultLyrics(false)
   let originalLines =[];
   let translatedLines ="";
   try {
     
-
+    
     if(lyrics!=""){
 
 
@@ -524,23 +573,23 @@ const getTranslateOfLyrics = async () => {
     }, []);
 
 
+    // useEffect(() => {
+
+    //   if (artist ) {
+    //     getTrackId();
+    //   }
+    // }, [artist]);
+
     useEffect(() => {
 
-      if (artist && track) {
-        getTrackId();
-      }
-    }, [artist, track]);
-
-    useEffect(() => {
-
-      if (trackId) {
+      if (artist) {
         // getLyrics();
         
       }
-    }, [trackId]);
+    }, [artist]);
 
     useEffect(() => {
-      // getTranslateOfLyrics(); 
+      //  getTranslateOfLyrics(); 
     
     }, [LanguageSelect]);
 
@@ -591,7 +640,7 @@ const getTranslateOfLyrics = async () => {
                 uri: item.album.images[index].url, //Array görüntü kalitesini ayarlıyor 0>1>2
               }}
             />
-<Text style={{ lineHeight: 30,  fontWeight: '500' }}>{DefaultLyrics==false?TranslateOflyrics:lyrics}</Text>
+{/* <Text style={{ lineHeight: 30,  fontWeight: '500' }}>{DefaultLyrics==false?TranslateOflyrics:lyrics}</Text> */}
 
 </View >
 <View style={{ flexDirection: 'row' }}>
@@ -633,7 +682,6 @@ const getTranslateOfLyrics = async () => {
          </TouchableOpacity>
          <TouchableOpacity
         onPress={() => {
-
           skipToNextTrack()
         }
         }
@@ -654,13 +702,14 @@ const getTranslateOfLyrics = async () => {
 
          </TouchableOpacity>
      
+     {/* <Text>{formatTime(remainingTime)}</Text> */}
      <Text>{msToTime(currentPosition)}</Text>
+
     <Text>{msToTimeLast(durationFullTimeOfSong)}</Text>
-    <Pressable onLongPress={handleLongPressFirstButton}>
+    <Pressable onLongPress={handleLongPressFirstButton}>   
      <SliderPosition isPlaying={isPlaying}
     Duration={durationFullTimeOfSong} RestartPosition={RestartPosition} HandleOpenSongForZeroTime={HandleOpenSongForZeroTime}  itemIdOpen={itemIdOpen} isFirstTime={isFirstTime} 
-    currentPosition={currentPosition} onPositionChanged={handlePositionChanged} renderTrigger={renderTrigger} skipToNextTrack={skipToNextTrack}/>
-     
+     onPositionChanged={handlePositionChanged}  renderTrigger={renderTrigger} skipToNextTrack={skipToNextTrack}/>
     </Pressable>
     <TouchableOpacity disabled={!isSecondButtonEnabled} onLongPress={handleLongPressSecondButton}>
  
