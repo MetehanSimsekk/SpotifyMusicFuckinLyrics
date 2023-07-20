@@ -25,6 +25,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 let device_id:any ="";
 let access_token:any="";
 let apiKeyForSystran:any="";
+const imagePause = require('../assets/Pause.png')
+const imagePlay = require('../assets/Play.png')
+const imageForward = require('../assets/fastforward.png')
+const imageBack = require('../assets/backforward.png')
+
 if(Platform.OS === 'web')
 {
  access_token= window.localStorage.getItem("access_token")
@@ -105,6 +110,9 @@ spotifyApi.setAccessToken(access_token);
     const [isSecondButtonEnabled, setIsSecondButtonEnabled] = useState(false);
     let [remainingTime, setRemainingTime] = useState(0);  
     const [currentPosition, setCurrentPosition] = useState(0);
+    const[TrackText,setTrackText] = useState('')
+    const[ArtistText,setArtistText] = useState('')
+
     const handleLongPressFirstButton = () => {
       console.log("ss")
       // setIsFirstButtonEnabled(false);
@@ -130,15 +138,11 @@ spotifyApi.setAccessToken(access_token);
     
      handlePositionChanged(currentPosition);
      
-        HandleOpenSong(playlist[0], currentPosition); //İlk defa oynatılıyorsa, position değeri ile çağırın.
+        HandleOpenSong(playlist[0], currentPosition ); //İlk defa oynatılıyorsa, position değeri ile çağırın.
        
         setIsPlaying(true);   
-      
-    const newIntervalId = setInterval(() => {
-      setCurrentPosition(currentPosition => currentPosition + 1000);
-    }, 1000);
-   
-    setIntervalId(newIntervalId);
+        
+ 
     
   }
     const pause = () => {
@@ -199,30 +203,10 @@ spotifyApi.setAccessToken(access_token);
     //   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     // };
     
-    useEffect(() => {
-      const intervalId = setInterval(() => {
-        setCurrentPosition(prevPosition => prevPosition + 1000);
-      }, 1000);
-  
-      setIntervalId(intervalId);
+   
 
-      return () => {
-        clearInterval(intervalId);
-      };
-    }, []);
-  
-
-    const msToTime = (ms: any) => {
-      const minutes = Math.floor(ms / 60000);
-      let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
-      return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-    };
-    const msToTimeLast = (ms: any) => {
-      
-      const minutes = Math.floor(ms / 60000);
-      let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
-      return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-    };
+   
+    
     const currentlyPlayingGetPosition = async () => {
       try {
         const result = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
@@ -284,7 +268,8 @@ spotifyApi.setAccessToken(access_token);
         )
         .then((response) => {
           console.log("Başarılı:", response.data);
-          
+          setTrackText(Track.name)
+          setArtistText(Track.artists[0].name)
         })
         .catch((error:any) => {
          
@@ -650,7 +635,7 @@ const getTranslateOfLyrics = async () => {
     };
 
     return (
-      <View>
+      <View >
        
         <TouchableOpacity style={{margin:5,width: 200 }}> 
  <SelectList 
@@ -666,6 +651,27 @@ const getTranslateOfLyrics = async () => {
     />
     </TouchableOpacity>
         <FlatList data={playlist} renderItem={RenderItem} />
+        <View style={styles.container}>
+     <SliderPosition artist={ArtistText} track={TrackText}  isPlaying={isPlaying}
+    Duration={durationFullTimeOfSong} 
+    RestartPosition={RestartPosition} 
+    HandleOpenSongForZeroTime={HandleOpenSongForZeroTime}  
+    itemIdOpen={itemIdOpen} isFirstTime={isFirstTime} 
+    onPositionChanged={handlePositionChanged}  
+    renderTrigger={renderTrigger}
+    skipToNextTrack={skipToNextTrack}/>
+   
+    <View style={styles.containerMusicButton}>
+        <TouchableOpacity
+        onPress={
+          skipToPreviousTrack 
+        }
+        style={styles.SkipTrack}
+      >
+
+        <Text><Image source={imageBack}  style={styles.image}/></Text>
+
+         </TouchableOpacity>
         <TouchableOpacity
         onPress={() => {
           if (isPlaying) {
@@ -675,58 +681,55 @@ const getTranslateOfLyrics = async () => {
           }
 
         }}
-        style={{ margin: 10 }}
+        style={[styles.buttonPlayPause,{ margin: 10 }]}
       >
 
-        <Text>{isPlaying ? "Pause" : "Play"}</Text>
+        <Text>{isPlaying ?  <Image source={imagePause}  style={styles.imagePlay}/> : <Image source={imagePlay}  style={styles.imagePlay}/> }</Text>
          </TouchableOpacity>
          <TouchableOpacity
         onPress={() => {
           skipToNextTrack()
         }
         }
-        style={{ margin: 10 }}
+        style={styles.SkipTrack}
       >
 
-        <Text>{"İleri"}</Text>
+        <Text><Image source={imageForward}  style={styles.image}/> </Text>
 
          </TouchableOpacity>
-         <TouchableOpacity
-        onPress={
-          skipToPreviousTrack 
-        }
-        style={{ margin: 10 }}
-      >
+        
+         </View>
+   </View>
+        
+ 
 
-        <Text>{"Geri"}</Text>
-
-         </TouchableOpacity>
      
-     {/* <Text>{formatTime(remainingTime)}</Text> */}
-     <Text>{msToTime(currentPosition)}</Text>
-
-    <Text>{msToTimeLast(durationFullTimeOfSong)}</Text>
-    <Pressable onLongPress={handleLongPressFirstButton}>   
-     <SliderPosition isPlaying={isPlaying}
-    Duration={durationFullTimeOfSong} RestartPosition={RestartPosition} HandleOpenSongForZeroTime={HandleOpenSongForZeroTime}  itemIdOpen={itemIdOpen} isFirstTime={isFirstTime} 
-     onPositionChanged={handlePositionChanged}  renderTrigger={renderTrigger} skipToNextTrack={skipToNextTrack}/>
-    </Pressable>
     <TouchableOpacity disabled={!isSecondButtonEnabled} onLongPress={handleLongPressSecondButton}>
  
 
         {/* <DualSlider  /> */}
         
-        <TouchableOpacity style={styles.circleButton} onPress={()=>HandleOpenSongForZeroTime(true)}>
+        {/* <TouchableOpacity style={styles.circleButton} onPress={()=>HandleOpenSongForZeroTime(true)}>
       <AntDesign name="close" style={styles.button}  size={24} color="black" />
    
-      </TouchableOpacity>  
+      </TouchableOpacity>   */}
  
         </TouchableOpacity>
       </View>
     );
   };
   const styles = StyleSheet.create({
-    
+    container :{
+      position: "relative",
+      
+    },
+    containerMusicButton :{
+      marginTop:40,
+      flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+   
+    },
     circleButton: {
       width: 50,
       height: 50,
@@ -738,5 +741,23 @@ const getTranslateOfLyrics = async () => {
     button: {
       padding: 10,
     },
+    SkipTrack:{
+     
+        margin: 14,
+        
+    },
+    buttonPlayPause: {
+      margin: 10,
+    },
+   
+  
+    imagePlay:{
+      width:  65, 
+      height: 65
+    },
+    image:{
+      width:  50, 
+      height: 50
+    }
   });
   export default OpenMusicSelect;

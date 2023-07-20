@@ -10,8 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let access_token="";
 
-const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTime,onPositionChanged ,Duration, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack }:{isPlaying:any,RestartPosition:any, HandleOpenSongForZeroTime:any,onPositionChanged:any,Duration:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void}) => {
-
+const SliderPosition =  ({ artist,track,isPlaying , RestartPosition, HandleOpenSongForZeroTime,onPositionChanged ,Duration, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack }:{artist:any,track:any,isPlaying:any,RestartPosition:any, HandleOpenSongForZeroTime:any,onPositionChanged:any,Duration:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void}) => {
+  
 
   if (Platform.OS === "web") {
     access_token = window.localStorage.getItem("access_token") || "";
@@ -83,8 +83,17 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
   };
 
 
-
-
+  const msToTime = (ms: any) => {
+    const minutes = Math.floor(ms / 60000);
+    let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
+    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+  };
+  const msToTimeLast = (ms: any) => {
+      
+    const minutes = Math.floor(ms / 60000);
+    let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
+    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+  };
   const WhileCurrentlyPlay = async () => {
     try {
       clearInterval(intervalId);
@@ -119,7 +128,10 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
 
 
 
-
+const alerts =() =>
+{
+  alert("sss")
+}
  
   useEffect(() => {
     
@@ -166,8 +178,18 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
     // AsyncPlay();
   };
   return (
-    <View style={{ margin: 15 }}>
+    
+    <View style={{ top:210,
+      width: '180%', 
+      alignSelf: 'center', 
+      height: '45%'  }}>
+        <Text style={styles.trackTextStyle}>{track}</Text>
+    <Text style={styles.artistTextStyle}>{artist}</Text>
+        <Text style={styles.msToTime}>{msToTime(position)}</Text>
+        <TouchableHighlight 
+        underlayColor="#EDEDED">
       <Slider
+        style={{ transform: [{ scaleX: 0.5 }, { scaleY: 0.5 }]}}
         minimumValue={0}
         maximumValue={Duration}
         value={position}
@@ -183,15 +205,57 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
         onSlidingStart={() => {
           stopSlider();
         }}
-      
+        thumbTintColor="white"
+        minimumTrackTintColor="white"
+   
+        maximumTrackTintColor="orange"
       />
+    </TouchableHighlight>
 
+ <Text style={styles.msToTimeLast}>{msToTimeLast(Duration)}</Text>
 
     </View>
   );
 };
 
-
+const styles = StyleSheet.create({
+  msToTime : {
+    position: 'absolute',
+    top:27,
+    left: 180,
+    fontSize: 12,
+   
+    
+    
+  }, msToTimeLast : {
+    position: 'absolute',
+    right: 180,
+    fontSize: 12,
+   
+    top:27
+    
+  },
+  trackTextStyle : {
+    bottom:230,
+    position:'absolute',
+    justifyContent:'center',
+    
+    left: '35%', // Ortalama için yarısını kullanıyoruz
+    fontSize: 18,
+    fontFamily:'Avenir-Heavy',
+    textAlign: 'center'
+  },
+  artistTextStyle:{
+    bottom:210,
+    position:'absolute',
+    justifyContent:'center',
+    
+    left: '35%', // Ortalama için yarısını kullanıyoruz
+    fontSize: 17,
+    fontFamily:'Avenir-Light',
+    textAlign: 'center'
+  }
+})
 
 export default SliderPosition;
 
