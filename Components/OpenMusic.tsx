@@ -29,11 +29,15 @@ const imagePause = require('../assets/Pause.png')
 const imagePlay = require('../assets/Play.png')
 const imageForward = require('../assets/fastforward.png')
 const imageBack = require('../assets/backforward.png')
-
+let params:any="";
 if(Platform.OS === 'web')
 {
  access_token= window.localStorage.getItem("access_token")
 device_id  = window.localStorage.getItem("device_id")
+params = {
+  "device_id": device_id || "" 
+ 
+};
 var apiKey  = window.localStorage.getItem("apiKey")
  apiKeyForSystran  = window.localStorage.getItem("apiKeyForSystran")
 var apiKeyForTranslate  = window.localStorage.getItem("apiKeyForTranslate")
@@ -55,6 +59,11 @@ if (Platform.OS === 'ios') {
   AsyncStorage.getItem('device_id')
     .then(id => {
       device_id = id;
+
+       params = {
+        "device_id": device_id 
+       
+      };
       // Diğer işlemler
     })
     .catch(error => {
@@ -113,11 +122,6 @@ spotifyApi.setAccessToken(access_token);
     const[TrackText,setTrackText] = useState('')
     const[ArtistText,setArtistText] = useState('')
 
-    const handleLongPressFirstButton = () => {
-      console.log("ss")
-      // setIsFirstButtonEnabled(false);
-      // setIsSecondButtonEnabled(true);
-    };
   
     const handleLongPressSecondButton = () => {
       setIsFirstButtonEnabled(true);
@@ -238,13 +242,11 @@ spotifyApi.setAccessToken(access_token);
    
  
  
-  const params = {
-    "device_id": device_id || "" 
-  };
+ 
   
     const HandleOpenSong = (Track: any,SongPos:number) => {
     // APIRun
-   
+  
       const data = {
         
       // context_uri: Track.album.uri,
@@ -263,7 +265,9 @@ spotifyApi.setAccessToken(access_token);
               Authorization: "Bearer " + access_token,
               "Content-Type": "application/json",
             },
-            params: params,
+            params: {
+              params
+            }
           }
         )
         .then((response) => {
@@ -272,7 +276,7 @@ spotifyApi.setAccessToken(access_token);
           setArtistText(Track.artists[0].name)
         })
         .catch((error:any) => {
-         
+       
           if(error=="Error: Request failed with status code 404")
           {
             alert("Please Open Your Spotify App On Mobile")
@@ -392,6 +396,7 @@ const GetTrackData = () => {
         //       setIsLyricsFetched(true) // Bayrağı etkinleştir
         //     });
         // }
+        
         if (!isLyricsFetched) {
           getLyrics(options)
             .then((lyrics: any) => {
