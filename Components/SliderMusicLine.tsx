@@ -1,5 +1,5 @@
 import React, { useEffect, useState ,useRef} from 'react';
-import { StyleSheet, Text, Button, View, SafeAreaView, TextInput, FlatList, Alert, Image, AppRegistry, TouchableOpacity, TouchableHighlight, Platform } from 'react-native';
+import { StyleSheet, Text, Button, View, SafeAreaView, TextInput, FlatList, Alert, Image, AppRegistry, TouchableOpacity, TouchableHighlight, Platform ,Vibration } from 'react-native';
 import Slider from "@react-native-community/slider";
 import axios from 'axios';
 import { PanResponder } from 'react-native';
@@ -29,7 +29,19 @@ const SliderPosition =  ({ artist,track,isPlaying , RestartPosition, HandleOpenS
   const [position, setPosition] = useState(0);
   const [StatusrenderTrigger, setrenderTrigger] = useState(false);
 
-  
+  const handleVibrate = () => {
+    // Cihazda titreşim gerçekleştirme
+   
+      // Trigger a vibration
+    
+        // Trigger a vibration
+        Vibration.vibrate(9);
+  };
+
+  const handleImpact = () => {
+    // Haptic feedback ile bir etki oluşturma
+    
+  };
   
   useEffect(()=>
   {
@@ -185,9 +197,10 @@ const alerts =() =>
       height: '45%'  }}>
         <Text style={styles.trackTextStyle}>{track}</Text>
     <Text style={styles.artistTextStyle}>{artist}</Text>
-        <Text style={styles.msToTime}>{msToTime(position)}</Text>
-        <TouchableHighlight 
+    <TouchableHighlight onPress={handleVibrate}
         underlayColor="#EDEDED">
+        <Text style={styles.msToTime}>{msToTime(position)}</Text>
+        </TouchableHighlight>
       <Slider
         style={{ transform: [{ scaleX: 0.5 }, { scaleY: 0.5 }]}}
         minimumValue={0}
@@ -210,7 +223,7 @@ const alerts =() =>
    
         maximumTrackTintColor="orange"
       />
-    </TouchableHighlight>
+   
 
  <Text style={styles.msToTimeLast}>{msToTimeLast(Duration)}</Text>
 

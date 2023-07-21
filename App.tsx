@@ -69,6 +69,7 @@ function App() {
        
        
         if (Platform.OS==='ios'){
+          DeviceID;
           AsyncStorage.getItem('access_token')
       .then(token => {
        
@@ -103,7 +104,7 @@ function App() {
        
         
           
-          DeviceID;
+       
         }, []);
     // if(Platform.OS=="web")
     // {
