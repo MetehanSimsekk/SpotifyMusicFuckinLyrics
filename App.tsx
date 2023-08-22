@@ -1,6 +1,6 @@
 import { EffectCallback, useRef , useEffect,useState }  from 'react';
 import * as React from 'react';
-import { StyleSheet, Text,Button, View,AppRegistry} from 'react-native';
+import { StyleSheet, Text,Button, View,AppRegistry,TouchableOpacity,Image} from 'react-native';
 import SpotifyLikedMusicScreen from './Components/GetMusicListAndSearch';
 import OpenMusicSelect from './Components/OpenMusic';
 import DeviceID from './Components/DeviceID';
@@ -102,9 +102,6 @@ function App() {
                   }
         }
        
-        
-          
-       
         }, []);
     // if(Platform.OS=="web")
     // {
@@ -159,13 +156,32 @@ function App() {
       
         }} />
   <Stack.Screen name="OpenMusicSelect"  
-        component={OpenMusicSelect} />
+        component={OpenMusicSelect}  options={({ navigation }) => ({
+          headerTitle: () => (
+            <Image
+              source={require('./path-to-your-image.png')} // Resmin yolunu doğru şekilde belirtin
+              style={{ width: 100, height: 35 }} // Resmin genişliği ve yüksekliği
+              resizeMode="contain" // Resmi içere sığacak şekilde ayarlar
+            />
+          ),
+          headerTintColor:'orange',
+          headerTitleStyle: {
+            fontSize: 35, // Yazı tipi boyutunu istediğiniz gibi ayarlayın
+            fontFamily:'Cochin',
+            fontWeight:'200',
+            color: 'orange', // Yazı tipi rengini istediğiniz gibi ayarlayın
+            // Diğer stil özelliklerini burada belirleyebilirsiniz
+          },
+          headerBackTitleVisible: true, // Geri gitme düğmesinin metnini kaldırır
+          headerTransparent: true,
+        })}/>
         
    </Stack.Navigator>
     </NavigationContainer>
   );
 }
 export default App;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
