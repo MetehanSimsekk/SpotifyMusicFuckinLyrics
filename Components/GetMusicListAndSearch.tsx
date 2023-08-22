@@ -39,6 +39,7 @@ else if (Platform.OS === 'ios')
   .then(token => {
     access_token = token;
     // Diğer işlemler
+  
   })
   .catch(error => {
     // Hata yönetimi

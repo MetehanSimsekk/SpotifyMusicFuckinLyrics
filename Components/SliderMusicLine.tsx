@@ -7,12 +7,11 @@ import { set } from 'lodash';
 import RangeSlider from './RangeSlider';
 import { platform } from 'os';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import LyricsComponent from './lyricsComponent';
 let access_token="";
 
-const SliderPosition =  ({ artist,track,isPlaying , RestartPosition, HandleOpenSongForZeroTime,onPositionChanged ,Duration, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack }:{artist:any,track:any,isPlaying:any,RestartPosition:any, HandleOpenSongForZeroTime:any,onPositionChanged:any,Duration:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void}) => {
-  
-
+const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTime,Duration,onPositionChanged, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack ,lyrics}:{isPlaying:any,RestartPosition:any, HandleOpenSongForZeroTime:any,Duration:any,onPositionChanged:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void,lyrics:any}) => {
+ 
   if (Platform.OS === "web") {
     access_token = window.localStorage.getItem("access_token") || "";
   } else if (Platform.OS === "ios") {
@@ -28,7 +27,6 @@ const SliderPosition =  ({ artist,track,isPlaying , RestartPosition, HandleOpenS
   const [intervalId, setIntervalId] = useState<any>(null); 
   const [position, setPosition] = useState(0);
   const [StatusrenderTrigger, setrenderTrigger] = useState(false);
-
   const handleVibrate = () => {
     // Cihazda titreşim gerçekleştirme
    
@@ -55,57 +53,65 @@ const SliderPosition =  ({ artist,track,isPlaying , RestartPosition, HandleOpenS
   },[RestartPosition]);
 
   const handlePositionChange = (value:number) => {
-    // console.log("handlePositionChange - value:", value);
-    
-     setPosition(value);
+      
+      setPosition(value);
 
-     if (onPositionChanged) {
-      console.log(value)
-      onPositionChanged(value);
-    }
-
-    
-
-
+      if (onPositionChanged) {
+      
+        onPositionChanged(value);
+      }
+  
   };
 
+  const OnSlidingComplete = (value:number) => {
+   
+    if(isPlaying!=false)
+    {
+   handleOpenSongForTimeWithSwitch(value) 
+   WhileCurrentlyPlay()
+  }
+};
 
 
-  const TimerPosition = async () => {
-    try {
-      clearInterval(intervalId);
-      const id = setInterval(() => {
-        setPosition((prevPosition) => {
-          const newPosition = prevPosition + 1000;
-          if (newPosition >= Duration) {
-            skipToNextTrack();
-
-            clearInterval(id);
-          } else {
-            setPosition(newPosition);
-          }
-          return newPosition;
-        });
-      }, 1000);
-      setIntervalId(id);
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
 
 
   const msToTime = (ms: any) => {
     const minutes = Math.floor(ms / 60000);
     let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
+   
+ 
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   };
   const msToTimeLast = (ms: any) => {
       
     const minutes = Math.floor(ms / 60000);
     let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
+    
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   };
+
+//   const TimerPosition = async () => {
+//     try {
+//       clearInterval(intervalId);
+//       const id = setInterval(() => {
+//         setPosition((prevPosition) => {
+//           const newPosition = prevPosition + 1000;
+//           if (newPosition >= Duration) {
+//             skipToNextTrack();ositionChanged(value);
+
+//             clearInterval(id);
+//           } else {
+//             setPosition(newPosition);
+//           }
+//           return newPosition;
+//         });
+//       }, 1000);
+//       setIntervalId(id);
+//     } catch (error) {
+//       console.error(error);
+//       throw error;
+//     }
+// };
   const WhileCurrentlyPlay = async () => {
     try {
       clearInterval(intervalId);
@@ -131,20 +137,16 @@ const SliderPosition =  ({ artist,track,isPlaying , RestartPosition, HandleOpenS
   };
 
   const stopSlider = () => {
-  
     clearInterval(intervalId);
-    isPlaying =false
-    
+   
     setIntervalId(null);
+    isPlaying =false
   };
 
+  function PositionChange(ms:any){
+    alert(ms)
+  }
 
-
-const alerts =() =>
-{
-  alert("sss")
-}
- 
   useEffect(() => {
     
     if(StatusrenderTrigger!=renderTrigger)
@@ -155,19 +157,23 @@ const alerts =() =>
     setrenderTrigger(renderTrigger)
      // Reset the position state
     //  stopSlider();   // Stop any existing intervals
+   
     if (isPlaying) {
-    
-      TimerPosition(); // Start the interval if the component is playing
+     
+      WhileCurrentlyPlay(); // Start the interval if the component is playing
     }
     else{
+    
       stopSlider(); 
     }
   }, [isPlaying,renderTrigger]);
 
+ 
+  
+
   const handleOpenSongForTimeWithSwitch = async (ms:any) => {
   
     const flooredMs = Math.floor(ms);
-    
     isPlaying =true
    
     try {
@@ -179,7 +185,6 @@ const alerts =() =>
         },
       });
       setPosition(ms);
- 
       console.log(`Şarkı ${ms} ms konumunda başlatıldı.`);
       isPlaying =false
     } catch (error) {
@@ -189,14 +194,15 @@ const alerts =() =>
     }
     // AsyncPlay();
   };
+
+
   return (
     
     <View style={{ top:210,
       width: '180%', 
       alignSelf: 'center', 
       height: '45%'  }}>
-        <Text style={styles.trackTextStyle}>{track}</Text>
-    <Text style={styles.artistTextStyle}>{artist}</Text>
+       
     <TouchableHighlight onPress={handleVibrate}
         underlayColor="#EDEDED">
         <Text style={styles.msToTime}>{msToTime(position)}</Text>
@@ -205,29 +211,33 @@ const alerts =() =>
         style={{ transform: [{ scaleX: 0.5 }, { scaleY: 0.5 }]}}
         minimumValue={0}
         maximumValue={Duration}
-        value={position}
-        
+        value={position}        
         onValueChange={handlePositionChange}
         onSlidingComplete={(value) => {
+         
           if(isPlaying)
           {WhileCurrentlyPlay()}
-        
+
         
          handleOpenSongForTimeWithSwitch(value);
         }}
         onSlidingStart={() => {
-          stopSlider();
+         stopSlider();
         }}
         thumbTintColor="white"
-        minimumTrackTintColor="white"
-   
+        minimumTrackTintColor="white"   
         maximumTrackTintColor="orange"
       />
    
 
  <Text style={styles.msToTimeLast}>{msToTimeLast(Duration)}</Text>
 
+ <LyricsComponent currentTime={position} lyrics={lyrics} Duration={Duration} isPlaying={isPlaying} skipToNextTrack={skipToNextTrack} PositionChange={handlePositionChange} SlidingComplete={OnSlidingComplete}></LyricsComponent>
     </View>
+
+
+
+   
   );
 };
 

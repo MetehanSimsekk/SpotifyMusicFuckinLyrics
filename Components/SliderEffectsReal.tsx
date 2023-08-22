@@ -11,16 +11,17 @@ if(Platform.OS === 'web')
 {
  access_token  = window.localStorage.getItem("access_token")
 }
-const MySlider = () => {
+const MySlider = ({artist,track,Duration}:{artist:any,track:any,Duration:any}) => {
   const [values, setValues] = useState('00:00');
   const [valuesOther, setValuesOther] = useState('00:00');
   const intervalRef = useRef<NodeJS.Timer  | null>(null);
   const [counter, setCounter] = useState(0); // Not Premium Properties
   const [position, setPosition] = useState(1);
+  
    const [RestartPosition ,setRestartPosition ] = useState(false);
   const multiSliderValuesChange = (values:any) => {
 
-   
+ 
    
     const totalMinutes =values[0]
     const hours = Math.floor(totalMinutes / 60);
@@ -47,6 +48,10 @@ const MySlider = () => {
     }, durationMs);
   }
 
+
+
+
+
   if (totalMinutes >= parseInt(valuesOther.substring(0, 2)) * 60 + parseInt(valuesOther.substring(3))) {
     setValues(formattedTime);
     setValuesOther(formattedTime);
@@ -57,7 +62,13 @@ const MySlider = () => {
 
   };
 
- 
+  function getFirstThreeDigits(num: number): number {
+    const numStr: string = num.toString();
+    const firstThreeDigits = parseInt(numStr.slice(0, 3));
+    return firstThreeDigits;
+  }
+
+
    async function HandleOpenSongForTime(ms:any) {
 
     try {
@@ -122,21 +133,23 @@ const MySlider = () => {
 
   return (
     <View style={styles.container}>
-      
+           <Text style={styles.trackTextStyle}>{track}</Text>
+    <Text style={styles.artistTextStyle}>{artist}</Text>
       <Slider
         style={styles.slider}
         minimumValue={0}
-        maximumValue={100}
+        maximumValue={getFirstThreeDigits(Duration)}
         step={1}
-        thumbTintColor={'red'}
-        minimumTrackTintColor={'red'}
-        maximumTrackTintColor={'white'}
+        thumbTintColor={'orange'}
+        minimumTrackTintColor={'white'}
+        maximumTrackTintColor={'orange'}
         value={parseInt(values.substring(0, 2)) * 60 + parseInt(values.substring(3))}
         onValueChange={(value) =>
         
           multiSliderValuesChange([value])
           
         }
+        
         onSlidingComplete={(value) =>
           HandleOpenSongForTime(value * 
             1000)
@@ -145,11 +158,11 @@ const MySlider = () => {
       <Slider
         style={styles.slider}
         minimumValue={0}
-        maximumValue={100}
+        maximumValue={getFirstThreeDigits(Duration)}
         step={1}
-        thumbTintColor={'blue'}
-        minimumTrackTintColor={'blue'}
-        maximumTrackTintColor={'white'}
+        thumbTintColor={'orange'}
+        minimumTrackTintColor={'white'}
+        maximumTrackTintColor={'orange'}
         value={parseInt(valuesOther.substring(0, 2)) * 60 + parseInt(valuesOther.substring(3))}
         onValueChange={(value) =>
           multiSliderValuesChangeOther([value])
@@ -158,8 +171,8 @@ const MySlider = () => {
           HandleOpenSongForTime(parseInt(values.substring(0, 2)) * 60 + parseInt(values.substring(3)) * 1000)
         }
       />
-      <Text style={styles.text}>{values}</Text>
-      <Text style={styles.text}>{valuesOther}</Text>
+      <Text style={styles.textValues}>{values}</Text>
+      <Text style={styles.textValuesOther}>{valuesOther}</Text>
      
     </View>
   );
@@ -171,21 +184,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
+    marginVertical:100
   },
   slider: {
     width: '80%',
-    height: 40,
+    top:3,
+    height: 30,
     margin: 10,
   },
-  text: {
+  textValues: {
     fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+    top:-10,
+    marginHorizontal: 0,
+    position:'absolute'
+    
+  },
+  textValuesOther: {
+    fontSize: 20,   
+    top:1,
+    marginVertical: 50,
+    position:'absolute'
+
   },
   button: {
     padding: 10,
     borderRadius: 20,
     backgroundColor: 'orange',
+  },
+  trackTextStyle : {
+    position:'absolute',
+    justifyContent:'center',
+    zIndex:99999999,
+    fontSize: 18,
+    fontFamily:'Avenir-Heavy',
+    textAlign: 'center',
+    bottom:62.5
+  },
+  artistTextStyle:{
+ 
+    position:'absolute',
+    justifyContent:'center',
+    zIndex:99999999,
+    fontSize: 17,
+    fontFamily:'Avenir-Light',
+    textAlign: 'center',
+    bottom:39
+
   },
 });
 
