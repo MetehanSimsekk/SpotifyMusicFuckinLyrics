@@ -17,6 +17,7 @@
     "@types/react-native-linear-gradient": "^2.4.0",
     "axios": "^0.24.0",
     "expo": "~48.0.11",
+    "expo-linear-gradient": "~12.1.2",
     "expo-status-bar": "~1.4.4",
     "genius-lyrics-api": "^3.2.0",
     "lodash": "^4.17.21",
@@ -35,9 +36,9 @@
     "react-native-sound": "^0.11.2",
     "react-native-vector-icons": "^10.0.0",
     "react-native-web": "~0.18.11",
+    "react-window": "^1.8.9",
     "spotify-web-api-js": "^1.5.2",
-    "string-similarity": "^4.0.4",
-    "expo-linear-gradient": "~12.1.2"
+    "string-similarity": "^4.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -46,6 +47,7 @@
     "@types/react": "~18.0.14",
     "@types/react-native": "^0.72.2",
     "@types/react-native-vector-icons": "^6.4.13",
+    "@types/react-window": "^1.8.5",
     "@types/string-similarity": "^4.0.0",
     "typescript": "^4.9.4"
   },

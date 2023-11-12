@@ -157,13 +157,13 @@ function App() {
         }} />
   <Stack.Screen name="OpenMusicSelect"  
         component={OpenMusicSelect}  options={({ navigation }) => ({
-          headerTitle: () => (
-            <Image
-              source={require('./path-to-your-image.png')} // Resmin yolunu doğru şekilde belirtin
-              style={{ width: 100, height: 35 }} // Resmin genişliği ve yüksekliği
-              resizeMode="contain" // Resmi içere sığacak şekilde ayarlar
-            />
-          ),
+          // headerTitle: () => (
+          //   // <Image
+          //   //   source={require('./path-to-your-image.png')} // Resmin yolunu doğru şekilde belirtin
+          //   //   style={{ width: 100, height: 35 }} // Resmin genişliği ve yüksekliği
+          //   //   resizeMode="contain" // Resmi içere sığacak şekilde ayarlar
+          //   // />
+          // ),
           headerTintColor:'orange',
           headerTitleStyle: {
             fontSize: 35, // Yazı tipi boyutunu istediğiniz gibi ayarlayın
