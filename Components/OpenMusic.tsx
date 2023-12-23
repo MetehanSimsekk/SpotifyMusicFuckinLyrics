@@ -2,14 +2,13 @@ import axios, { AxiosResponse } from 'axios';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SliderPosition from "./SliderMusicLine";
 import { useEffect, useState ,useRef,useContext} from 'react';
-import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,Pressable } from 'react-native';
+import { ActivityIndicator,StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Slider from "@react-native-community/slider";
 import { ArtistNames } from '../Models/artistModel';
 import DualSlider from "../Components/SliderEffectsReal";
 import _ from 'lodash';
 import Ionicons from '@expo/vector-icons/Ionicons';
-
 import HomeScreen from './HomeScreen';
 const Stack = createNativeStackNavigator();
 import SpotifyWebApi from 'spotify-web-api-js';
@@ -27,6 +26,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import LyricsComponent from './lyricsComponent';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { LyricsElementModel } from '../Models/lyrics';
+
+import Modal from 'react-native-modal';
+
 let device_id:any ="";
 let access_token:any="";
 let apiKeyForSystran:any="";
@@ -86,6 +88,10 @@ if (Platform.OS === 'ios') {
     .catch(error => {
      console.error(error);
     });
+    params = {
+      "device_id": device_id || "" 
+     
+    };
 }
 const spotifyApi = new SpotifyWebApi();
 spotifyApi.setAccessToken(access_token);
@@ -184,19 +190,11 @@ spotifyApi.setAccessToken(access_token);
        
       }
       
-      
-      
-    
-    
      
     }
 
     
-      
     
-   
-
-   
     
     const currentlyPlayingGetPosition = async () => {
       try {
@@ -230,51 +228,99 @@ spotifyApi.setAccessToken(access_token);
   
     const HandleOpenSong = (Track: any,SongPos:number) => {
     // APIRun
-    console.log(access_token)
-      const data = {
-        
-      // context_uri: Track.album.uri,
-        uris:route.params.PathURis[0],
-        offset: {
-          position: route.params.index,
-        },
-        position_ms: SongPos
-      };
-      axios
-        .put(
-          'https://api.spotify.com/v1/me/player/play',
-          data,
-          {
-            headers: {
-              Authorization: "Bearer " + access_token,
-              "Content-Type": "application/json",
-            },
-            params: {
-              params
-            }
-          }
-        )
-        .then((response) => {
-         
-          setTrackText(Track.name)
-          setArtistText(Track.artists[0].name)
-        })
-        .catch((error:any) => {
-       
-          if(error=="Error: Request failed with status code 404")
-          {
-            alert("Please Open Your Spotify App On Mobile")
-            
-          
-          }
-          else{
-           
-            axiosInstance.get("");
-            
-          }
-        });
+    console.log("HandleOpenSong logu OpenMusic Component içerisinde bulunur.Log :" + access_token)
+    
+    axios
+    .get('https://api.spotify.com/v1/me/player', {
+      headers: {
+        Authorization: 'Bearer ' + access_token, // Erişim belirteci (access token)
+      },
+    })
+    .then((response) => {
+      const playbackState = response.data ==""?false:response.data.is_playing;
+  
+      if (!playbackState) {
+        // Spotify uygulaması müzik çalıyorsa müziği durdurun
+        checkAndStartPlayback();
+        startMusic(Track,SongPos);
+      } else {
+        // PauseMusic();
+        // Spotify uygulaması müzik çalmıyorsa müziği başlatın
+        startMusic(Track,SongPos);
+      }
+    })
+    .catch((error) => {
+      console.error('Çalma durumu alınırken hata oluştu:', error);
+    });
+
+
     };
 
+    const checkAndStartPlayback = async () => {
+      try {
+        // Kullanıcının çalma durumunu kontrol et
+        const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
+          headers: {
+            'Authorization': 'Bearer ' + access_token,
+          },
+        });
+    
+        const isPlaying = response.data.is_playing;
+    
+        if (!isPlaying) {
+          // Kullanıcının Spotify uygulamasında çalma durumu aktif değilse, çalma işlemini başlat
+          await startMusic(playlist[0], currentPosition);
+        
+        }
+      } catch (error) {
+        console.error('Çalma durumu kontrol edilirken hata oluştu:', error);
+      }
+    };
+    
+    const startMusic = async(Track: any,SongPos:number)=>
+    {
+      
+      console.log("start music componenti içerisnde : "+access_token);
+      const data = {
+        //Burayı kontrol et çok gazla kayıt geliyor PathURis hatalı kod
+        // context_uri: Track.album.uri,
+          uris:route.params.PathURis[0],
+          offset: {
+            position: route.params.index,
+          },
+          position_ms: SongPos
+        };
+        axios
+          .put(
+            'https://api.spotify.com/v1/me/player/play',
+            data,
+            {
+              headers: {
+                Authorization: "Bearer " + access_token,
+                "Content-Type": "application/json",
+              },
+              params: {
+                params
+              }
+            }
+          )
+          .then((response) => {
+           
+            setTrackText(Track.name)
+            setArtistText(Track.artists[0].name)
+          })
+          .catch((error:any) => {
+                     
+            if (error.response.status === 404) {
+              alert("Please Open Any Song From Your Spotify Mobile App Then Try Again");
+            }
+            else{
+             
+              axiosInstance.get("");
+              
+            }
+          });
+    } 
     const PauseMusic = async ()=>
 {
   try {
@@ -290,12 +336,26 @@ spotifyApi.setAccessToken(access_token);
     );
    
   } catch (error) {
-    console.error('Hata:', error);
+    console.error('Hata: OpenMusic Component içerisinde alınan hata', error);
   
 
   }
 }
 
+const CustomAlert = ({ message, onDismiss }:{message:any,onDismiss:any}) => {
+  return (
+    <Modal isVisible={true}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ backgroundColor: 'white', padding: 20, borderRadius: 10 }}>
+          <Text>{message}</Text>
+          <TouchableOpacity onPress={onDismiss}>
+            <Text>Dismiss</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 
 // const  getTrackId = () => {
 
@@ -606,98 +666,82 @@ const getTranslateOfLyrics = async () => {
     };
     
     return (
-     
-      <View  >
-   <LinearGradient
-        // Background Linear Gradient
-        
-        colors={['rgba(0,0,0,0.8)', 'transparent']}
-        style={{backgroundColor:"white",zIndex:-999999999999999999,height:920}}
-        start={{ x: 0.5, y: 1 }} // Geçişin başlangıç noktası (aşağıda)
-        end={{ x: 0.5, y: 0 }} //
-      >
-        <FlatList scrollEnabled={false} data={playlist} renderItem={RenderItem} style={{top:180}} />
-        {!isFirstButtonEnabled?
-        <View  style={styles.container}>
-          <Text style={styles.trackTextStyle}>{track}</Text>
-    <Text style={styles.artistTextStyle}>{artist}</Text>
-     <SliderPosition isPlaying={isPlaying}
-    Duration={durationFullTimeOfSong} 
-    RestartPosition={RestartPosition} 
-    HandleOpenSongForZeroTime={HandleOpenSongForZeroTime}  
-    itemIdOpen={itemIdOpen} isFirstTime={isFirstTime}     
-    renderTrigger={renderTrigger}
-    skipToNextTrack={skipToNextTrack}
-    lyrics={lyrics} 
-    onPositionChanged={handlePositionChanged}  
-    />
-   
-      <View style={styles.containerMusicButton}>
-      <TouchableOpacity onPress={handlePressSecondButton}>
-      <Icon name="sliders" size={30} color="orange" />
-         
-         </TouchableOpacity>
-        <TouchableOpacity 
-        onPress={
-          skipToPreviousTrack 
-        }
-        style={styles.SkipTrack} 
-      >
-<Ionicons style={[styles.image,{marginLeft:8}]} name="play-skip-back-outline" size={42}  color="orange" />
-
-     
-
-
-         </TouchableOpacity>
-        <TouchableOpacity 
-        onPress={() => {
-          if (isPlaying) {
-            pause();
-          } else {
-            play();
-          }
-
-        }}
-        style={[styles.buttonPlayPause,{ margin: 10 }]}
-      >
-
-        <Text>{isPlaying ?  <Ionicons style={styles.imagePlay} name="pause-circle" size={80}  color="orange" />: <Ionicons style={styles.image} name="play-circle" size={80}  color="orange" />}</Text>
-         </TouchableOpacity>
-         <TouchableOpacity
-        onPress={() => {
-          skipToNextTrack()
-        }
-        }
-        style={styles.SkipTrack}
-      >
-<Ionicons style={styles.image} name="play-skip-forward-outline" size={42}  color="orange" />
-
-
-
-         </TouchableOpacity>
-         <TouchableOpacity onPress={handlePressSecondButton}>
-         <Icon name="sliders" size={30} color="orange" />
-         
-         </TouchableOpacity>
-         </View>
-        
-   {/* <LyricsComponent currentTime={position} lyrics={lyrics} Duration={durationFullTimeOfSong} isPlaying={isPlaying} skipToNextTrack={skipToNextTrack}></LyricsComponent> */}
-   </View> :""}
-
-   {isFirstButtonEnabled?
-   <TouchableOpacity style={{marginVertical:70}}>
-    
-      <DualSlider artist={artist} track={track}  Duration={durationFullTimeOfSong} />
-      
-    
-        <TouchableOpacity style={styles.circleButton} onPress={() => HandleOpenSongForZeroTime(false)}>
-          <AntDesign name="close" style={{alignItems:'center'}} size={30} color="black" />
-        </TouchableOpacity>
-    
-    </TouchableOpacity> :""}
-    </LinearGradient>
-    
+      <TouchableOpacity disabled={true}>
+      <View>
+        <LinearGradient
+          // Linear Gradient içeriği
+          colors={['rgba(0,0,0,0.8)', 'transparent']}
+          style={{ backgroundColor: "white", zIndex: -999999999999999999, height: 920 }}
+          start={{ x: 0.5, y: 1 }}
+          end={{ x: 0.5, y: 0 }}
+        >
+          <FlatList scrollEnabled={false} data={playlist} renderItem={RenderItem} style={{ top: 180 }} />
+          {!isFirstButtonEnabled ? (
+            <View style={styles.container}>
+              <Text style={styles.trackTextStyle}>{track}</Text>
+              <Text style={styles.artistTextStyle}>{artist}</Text>
+              <SliderPosition
+                isPlaying={isPlaying}
+                Duration={durationFullTimeOfSong}
+                RestartPosition={RestartPosition}
+                HandleOpenSongForZeroTime={HandleOpenSongForZeroTime}
+                itemIdOpen={itemIdOpen}
+                isFirstTime={isFirstTime}
+                renderTrigger={renderTrigger}
+                skipToNextTrack={skipToNextTrack}
+                lyrics={lyrics}
+                onPositionChanged={handlePositionChanged}
+              />
+              <View style={styles.containerMusicButton}>
+                <TouchableOpacity disabled={true}>
+                  <Icon name="sliders" size={30} color="orange" />
+                </TouchableOpacity>
+                <TouchableOpacity disabled={true} onPress={skipToPreviousTrack} style={styles.SkipTrack}>
+                  <Ionicons style={[styles.image, { marginLeft: 8 }]} name="play-skip-back-outline" size={42} color="orange" />
+                </TouchableOpacity>
+                <TouchableOpacity disabled={true}
+                  onPress={() => {
+                    if (isPlaying) {
+                      pause();
+                    } else {
+                      play();
+                    }
+                  }}
+                  style={[styles.buttonPlayPause, { margin: 10 }]}
+                >
+                  <Text>
+                    {isPlaying ? (
+                      <Ionicons style={styles.imagePlay} name="pause-circle" size={80} color="orange" />
+                    ) : (
+                      <Ionicons style={styles.image} name="play-circle" size={80} color="orange" />
+                    )}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity disabled={true} onPress={skipToNextTrack} style={styles.SkipTrack}>
+                  <Ionicons style={styles.image} name="play-skip-forward-outline" size={42} color="orange" />
+                </TouchableOpacity>
+                <TouchableOpacity disabled={true}>
+                  <Icon name="sliders" size={30} color="orange" />
+                </TouchableOpacity>
+              </View>
+              {/* Diğer içerik */}
+            </View>
+          ) : (
+            ""
+          )}
+          {isFirstButtonEnabled ? (
+            <TouchableOpacity style={{ marginVertical: 70 }}>
+              <DualSlider artist={artist} track={track} Duration={durationFullTimeOfSong} />
+              <TouchableOpacity style={styles.circleButton} onPress={() => HandleOpenSongForZeroTime(false)}>
+                <AntDesign name="close" style={{ alignItems: 'center' }} size={30} color="black" />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ) : (
+            ""
+          )}
+        </LinearGradient>
       </View>
+    </TouchableOpacity>
     
     );
   };

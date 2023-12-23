@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useEffect, useState,useRef } from 'react';
-import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,ScrollView,RefreshControl  } from 'react-native';
+import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,ScrollView,RefreshControl, ActivityIndicator  } from 'react-native';
 import { ArtistNames } from "../Models/artistModel";
 import axios, { AxiosResponse } from 'axios';
 import SearchBar from "../Components/Search";
@@ -21,6 +21,8 @@ import { Platform } from 'react-native';
 import APIRun from "./API";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FixedSizeList } from 'react-window';
+import { LinearGradient } from 'expo-linear-gradient';
+
 
 let device_id:any ="";
 let access_token:any ="";
@@ -94,7 +96,9 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPosition, setCurrentPosition] = useState(0);
-
+  const [initialLoadComplete, setInitialLoadComplete] = useState(true);
+const [loadMoreData, setLoadMoreData] = useState(true);
+const [IsEndReachedFlag, setIsEndReached] = useState(false);
   const [playlist, setPlaylist] = useState<Song[]>([]);  
   const [AllMusicUris, setUris] = useState<[]>([]);  
   // let [searchQuery, setSearchQuery] = React.useState();
@@ -108,7 +112,9 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
   const SCOPES=["user-library-read","playlist-modify-private","user-read-currently-playing","user-read-playback-state","user-modify-playback-state","app-remote-control"]
   const [shouldRefresh, setShouldRefresh] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [flag,setFlag]=useState(false)
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [flag,setFlag]=useState(true)
   const refreshFlatList = () => {
     setShouldRefresh(!shouldRefresh);
   };
@@ -118,36 +124,46 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
       id:any
       artists:any
       name:any
+      album:any
      }
    
     // Diğer şarkı özellikleri
   }
 
+let i=0;
 
    async function getLikedSongs(access_token: string): Promise<any> {
     const url = 'https://api.spotify.com/v1/me/tracks';
     const headers = {
       'Authorization': 'Bearer ' + access_token
+      
     };
-  
     let allLikedSongs: Song[]=[];
     // let allLikedSongs: any;
     const uris:any=[];
   
     try {
+      //alert("girdi1")
       let response: AxiosResponse<any> | null = null;
       let data: any = {};
-  
+     
       // İlk isteği yapma
+      await new Promise(resolve => setTimeout(resolve, 1000));
       response = await axios.get(url, { headers });
-      if (response ) {
+      if (response && initialLoadComplete) {
+        //alert("girdi2")
         data = response.data;
         allLikedSongs.push(...data.items);
+        setPlaylist(allLikedSongs)
+       
+        setInitialLoadComplete(false);
         
-     
       }
   
       while (data.next) {
+       
+      if(loadMoreData)
+      {
         response = await axios.get(data.next, { headers });
         if (response) {
        
@@ -159,11 +175,13 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
           
           setUris(uris);
           setPlaylist(allLikedSongs)
+        
         }
-       
         
       }
-    } 
+    }
+    
+  } 
     catch (error:any) {
       if(error=="Error: Request failed with status code 404")
           {
@@ -174,21 +192,21 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
             
           }
     }
-  
+    setIsLoading(false)
   }
  
   
   useEffect(() => {
 
   
- 
+    setLoadMoreData(true)
 getLikedSongs(access_token);
 }, [access_token]);
  // Verileri yükleme işlevi
 
 
   function  GoToOpenMusic(trackInfoTrackId: any,index:number) {
-    
+    console.log("Uris göndermelisin pathuris yerine track uris")
     navigation.navigate('OpenMusicSelect', { track: trackInfoTrackId,index,PathURis:AllMusicUris,DataItems:playlist });
     
   }
@@ -224,7 +242,7 @@ getLikedSongs(access_token);
   };
   const refreshData = () => {
     setIsRefreshing(true); // Sayfa yenileniyor olarak işaretleyin
-    loadMoreData()
+    loadMoreDataTrigger()
     setIsRefreshing(false);
     // Burada verilerinizi yenileyen kodları ekleyin
     // Örneğin, getLikedSongs(access_token) gibi bir işlevi çağırabilirsiniz
@@ -232,95 +250,158 @@ getLikedSongs(access_token);
   };
   
     
-  const RenderItem = ({ item, index }: { item: Song, index: number }) => {
+  // const RenderItem = ({ item, index }: { item: Song, index: number }) => {
  
   
-    return (
-      <TouchableOpacity
-        onPress={() => GoToOpenMusic(item.track.id, index)}
-      >
-        <Text key={item.track.id}>{item.track.name + '*'}</Text>
-        <Text>{item.track.artists[0].name}</Text>
-      </TouchableOpacity>
-    );
-  };
+  //   return (
+  //     <TouchableOpacity
+  //       onPress={() => GoToOpenMusic(item.track.id, index)}
+  //     >
+  //       <Text key={item.track.id}>{item.track.name + '*'}</Text>
+  //       <Text>{item.track.artists[0].name}</Text>
+  //     </TouchableOpacity>
+  //   );
+  // };
   const filteredPlaylist = filterData(playlist, searchQuery);
 
-  const loadMoreData = async () => {
-    // Yeni verileri yükleme işlemi burada yapılabilir.
-    // Örnek: Daha fazla şarkı yüklemek için getLikedSongs işlevini çağırabilirsiniz.
+  // const loadMoreData = async () => {
+  //   // Yeni verileri yükleme işlemi burada yapılabilir.
+  //   // Örnek: Daha fazla şarkı yüklemek için getLikedSongs işlevini çağırabilirsiniz.
     
 
     
-    getLikedSongs(access_token)
+  //   getLikedSongs(access_token)
+  // };
+
+
+  const loadMoreDataTrigger = () => {
+   //alert("loadMoreDataTrigger")
+    setLoadMoreData(true); // İkinci yükleme işlemi başladı
   };
- 
+
+  const memoizedData = useMemo(() => filteredPlaylist, [filteredPlaylist]);
+
+
   return (
-    <View style={styles.container}>
-      <Searchbar
+    <LinearGradient
+    colors={['#141e30', '#243b55', '#141e30']}
+    style={styles.container}
+  >
+    <Searchbar
         placeholder="Search"
         onChangeText={updateSearch}
         value={searchQuery}
+        style={styles.searchbar}
       />
-
-      <ScrollView
-        contentContainerStyle={styles.scrollViewContainer}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />
-        }
-        onScroll={({ nativeEvent }) => {
-          const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-          const isEndReached =
-            layoutMeasurement.height + contentOffset.y >=
-            contentSize.height - 50;
-          if (isEndReached) {
-            loadMoreData();
-          }
-        }}
-      >
-        {filteredPlaylist.map((item: Song, index: number) => (
-          <TouchableOpacity
-            key={item.track.id}
-            onPress={() => GoToOpenMusic(item.track.id, index)}
-            style={styles.listItem}
-          >
-            <Text style={styles.songName}>{item.track.name}</Text>
-            <Text style={styles.artistName}>
-              {item.track.artists[0].name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+    
+   {isLoading ? (
+    // Bekleme görseli
+    <View style={styles.loadingContainer}>
+    <ActivityIndicator size="large" color="#0000ff" />
+  </View>
+  ) : (
+    
+    
+    <ScrollView
+      contentContainerStyle={styles.scrollViewContainer}
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />
+      }
+      // onScroll={({ nativeEvent }) => {
+      //   const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+      //   const isEndReached =
+      //     layoutMeasurement.height + contentOffset.y >=
+      //     contentSize.height - 1350;
+      //   if (isEndReached && !IsEndReachedFlag) {
+      //     setIsEndReached(true);
+      //     alert(isEndReached)
+      //     loadMoreDataTrigger();
+      //   }
+      // }}
+      scrollEventThrottle={20}
+    >
+      
+      {memoizedData.map((item: Song, index: number) => (
+  <TouchableOpacity
+    key={item.track.id}
+    onPress={() => GoToOpenMusic(item.track.id, index)}
+    style={styles.listItem}
+  >
+    <Image
+      source={{ uri: item.track.album.images[0]?.url || '' }} 
+      style={styles.albumCover}
+     
+    />
+    <View style={styles.textContainer}>
+      <Text style={styles.songName}>{item.track.name}</Text>
+      <Text style={styles.artistName}>
+        {item.track.artists[0]?.name || ''} 
+      </Text>
     </View>
+  </TouchableOpacity>
+))}
+
+
+
+
+    </ScrollView>)}
+  </LinearGradient>
   );
 };
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // Arka plan rengini ayarlayın
   },
   scrollViewContainer: {
+   
+    paddingVertical: 16,
     paddingHorizontal: 16,
-    paddingTop: 8,
   },
   listItem: {
-    backgroundColor: '#f9f9f9', // Liste öğesi arka plan rengini ayarlayın
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    paddingVertical: 15, // Önceki değeri azaltabilirsiniz
+    paddingHorizontal: 15, // Önceki değeri azaltabilirsiniz
+    marginBottom: 8, // İstediğiniz boşluğa göre ayarlayabilirsiniz
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
+  albumCover: {
+    width: 60, // Önceki değeri azaltabilirsiniz
+    height: 60, // Önceki değeri azaltabilirsiniz
+    borderRadius: 8,
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 16,
+  },
   songName: {
-    fontSize: 16,
+    fontSize: 16, // Önceki değeri azaltabilirsiniz
     fontWeight: 'bold',
-    color: '#333', // Şarkı adı rengini ayarlayın
+    color: '#fff',
   },
   artistName: {
-    fontSize: 14,
-    color: '#666', // Sanatçı adı rengini ayarlayın
+    fontSize: 14, // Önceki değeri azaltabilirsiniz
+    color: '#ccc',
+  },
+  actionButton: {
+    width: 80,
+    height: 32,
+    backgroundColor: '#ff4a57',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  }, loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  searchbar: {
+    margin: 16, // Arama çubuğunun dört tarafına boşluk ekler
   },
 });
 

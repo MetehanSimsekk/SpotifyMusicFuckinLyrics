@@ -20,7 +20,7 @@ else if(Platform.OS === 'ios')
   .then(token => {
     accessTokenOnMobile = token;
 
-console.log(accessTokenOnMobile)
+console.log("Mobile Token : " + accessTokenOnMobile)
 
     axios.get(
       'https://api.spotify.com/v1/me/player/devices',
@@ -40,12 +40,13 @@ console.log(accessTokenOnMobile)
       .catch(error => {
    
         if (error === "TypeError: Cannot read properties of undefined (reading 'id') ") {
-          alert("2")
+          
 
          alert("Please First Open Spotify API")
         } else {
-          alert("1")
-          console.log(error)
+          alert("Please First Open Spotify API")
+         
+          console.log(error+"Bu hata lyricsComponent içerisinde alınmıştır")
           //  APIRun()
           // alert("Hata Apptsx : " + error);
           // axiosInstance.get("");

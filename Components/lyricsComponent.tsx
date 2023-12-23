@@ -376,9 +376,9 @@ const ses = ()=>
       
       Animated.sequence([
         Animated.timing(bounceValue, { toValue: 1.03, duration: 350, useNativeDriver: false }),
-        Animated.timing(bounceValue, { toValue: 1, duration: 350, useNativeDriver: true }),
+        Animated.timing(bounceValue, { toValue: 1, duration: 350, useNativeDriver: false }),
         Animated.timing(bounceValue, { toValue: 1.03, duration: 350, useNativeDriver: false }),
-        Animated.timing(bounceValue, { toValue: 1, duration: 350, useNativeDriver: true }),
+        Animated.timing(bounceValue, { toValue: 1, duration: 350, useNativeDriver: false }),
         
       ]).start()
     }, 300); // 3 saniye gecikme
