@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, Button, View, Image,TouchableOpacity,Animated ,Dimensions  } from "react-native";
+import { StyleSheet, Text, Button, View, Image,TouchableOpacity,Animated ,Dimensions, Platform  } from "react-native";
 import APIRun from "../Components/API";
 import APIforMusixMatch from "./MusicMatch/APIforMusixMatch";
 import SystranForTranslate from "./TranslateAPI/SystranForTranslate";
@@ -36,6 +36,9 @@ function HomeScreen() {
   };
   const colorAnimation = useRef(new Animated.Value(0)).current;
   const learnAnimation = useRef(new Animated.Value(0)).current;
+
+
+  
   // useEffect(() => {
   //   if (renderCount > 1) {
   //     RefreshToken();

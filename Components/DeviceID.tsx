@@ -67,6 +67,59 @@ console.log("Mobile Token : " + accessTokenOnMobile)
     // Hata yönetimi
   });
 }
+else if(Platform.OS === 'android')
+{
+  AsyncStorage.getItem('access_token')
+  .then(token => {
+    accessTokenOnMobile = token;
+
+console.log("Mobile Token : " + accessTokenOnMobile)
+
+    axios.get(
+      'https://api.spotify.com/v1/me/player/devices',
+      {
+        headers: {
+          Authorization: `Bearer ${accessTokenOnMobile}`,
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        }
+      }
+    )
+      .then(res => {
+
+        AsyncStorage.setItem("device_id", res.data.devices[0].id);
+        
+      })
+      .catch(error => {
+   
+        if (error === "TypeError: Cannot read properties of undefined (reading 'id') ") {
+          
+
+         alert("Please First Open Spotify API")
+        } else {
+          alert("Please First Open Spotify API")
+         
+          console.log(error+"Bu hata lyricsComponent içerisinde alınmıştır")
+          //  APIRun()
+          // alert("Hata Apptsx : " + error);
+          // axiosInstance.get("");
+          // İstek başarılı olduğunda response kullanılabilir
+        }
+      });
+    // Diğer işlemler
+
+
+
+    if(accessTokenOnMobile==null)
+    {
+     
+    GetDeviceID()
+    }// Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
+  });
+}
  function GetDeviceID() {
   
   if (accessToken !== null) {
@@ -98,13 +151,7 @@ console.log("Mobile Token : " + accessTokenOnMobile)
             // İstek başarılı olduğunda response kullanılabilir
           }
         });
-    } else if (Platform.OS === 'ios') {
-      // iOS platformu için axios.get isteği
-      
-
-      
-    
-    }
+    } 
   }
 }
 export default GetDeviceID();

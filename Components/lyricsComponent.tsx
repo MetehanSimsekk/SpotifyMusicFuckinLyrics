@@ -63,7 +63,29 @@ const LyricsComponent = ({ currentTime, lyrics ,Duration,isPlaying,skipToNextTra
        console.error(error);
       });
   }
+  else if (Platform.OS === 'android') {
+    
+    AsyncStorage.getItem('access_token')
+    .then(token => {
+      access_token = token;
+      // Diğer işlemler
+    })
+    .catch(error => {
+    
 
+      console.error(error);
+      // Hata yönetimi
+    });
+  
+    AsyncStorage.getItem('apiKeyForSystran')
+      .then(apiKey => {
+        apiKeyForSystran = apiKey;
+        // Diğer işlemler
+      })
+      .catch(error => {
+       console.error(error);
+      });
+  }
 const splitLyricsByLines = (lyrics:any) => {
     return lyrics.split('\n');
   };

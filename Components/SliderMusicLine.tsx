@@ -24,6 +24,16 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
         // Hata yönetimi
       });
   }
+  else if (Platform.OS === "android") {
+    AsyncStorage.getItem("access_token")
+      .then((token) => {
+        access_token = token || "";
+        // Diğer işlemler
+      })
+      .catch((error) => {
+        // Hata yönetimi
+      });
+  }
   const [intervalId, setIntervalId] = useState<any>(null); 
   const [position, setPosition] = useState(0);
   const [StatusrenderTrigger, setrenderTrigger] = useState(false);

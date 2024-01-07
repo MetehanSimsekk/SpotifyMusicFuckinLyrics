@@ -40,19 +40,35 @@ let refresh_token:any;
   else if(Platform.OS == 'ios')
     {
 
-    // const getData = async (key:any) => {
-    //   try {
-    //     const value = await AsyncStorage.getItem(key);
-    //     return value;
-    //   } catch (error) {
-    //     console.error('Failed to get data from AsyncStorage:', error);
-    //     return null;
-    //   }
-    // };
+    const getData = async (key:any) => {
+      try {
+        const value = await AsyncStorage.getItem(key);
+        return value;
+      } catch (error) {
+        console.error('Failed to get data from AsyncStorage:', error);
+        return null;
+      }
+    };
     
      access_token =  AsyncStorage.getItem('access_token');
     
   }
+  else if(Platform.OS == 'android')
+  {
+
+  const getData = async (key:any) => {
+    try {
+      const value = await AsyncStorage.getItem(key);
+      return value;
+    } catch (error) {
+      console.error('Failed to get data from AsyncStorage:', error);
+      return null;
+    }
+  };
+  
+   access_token =  AsyncStorage.getItem('access_token');
+  
+}
   
 
 

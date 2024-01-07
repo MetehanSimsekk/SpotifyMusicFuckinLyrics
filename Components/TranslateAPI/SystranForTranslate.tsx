@@ -21,5 +21,10 @@ else if(Platform.OS === 'ios')
 AsyncStorage.setItem("apiKeyForSystran",key)
 
 }
+else if(Platform.OS === 'android')
+{
+AsyncStorage.setItem("apiKeyForSystran",key)
+
+}
 }
 export default ApiForSystranTranslate();

@@ -93,6 +93,47 @@ if (Platform.OS === 'ios') {
      
     };
 }
+if (Platform.OS === 'android') {
+  AsyncStorage.getItem('access_token')
+    .then(token => {
+      access_token = token;
+      // Diğer işlemler
+    })
+    .catch(error => {
+    
+
+      console.error(error);
+      // Hata yönetimi
+    });
+
+  AsyncStorage.getItem('device_id')
+    .then(id => {
+      device_id = id;
+
+       params = {
+        "device_id": device_id 
+       
+      };
+      // Diğer işlemler
+    })
+    .catch(error => {
+
+      console.error(error);
+    });
+
+  AsyncStorage.getItem('apiKeyForSystran')
+    .then(apiKey => {
+      apiKeyForSystran = apiKey;
+      // Diğer işlemler
+    })
+    .catch(error => {
+     console.error(error);
+    });
+    params = {
+      "device_id": device_id || "" 
+     
+    };
+}
 const spotifyApi = new SpotifyWebApi();
 spotifyApi.setAccessToken(access_token);
 
@@ -167,34 +208,55 @@ spotifyApi.setAccessToken(access_token);
     //  setIntervalId(null);
     };
 
-    function skipToNextTrack() {
-      setCurrentPosition(0)
-      setDefaultLyrics(true)
+    // function skipToNextTrack() {
      
-      // Increment the index for next song
-      route.params.index++;     
+    //   setDefaultLyrics(true)
+    //   // Increment the index for next song
+    //  const trackId = route.params.DataItems[route.params.index++].track.id;     
     
-      // Fetch the data for the next song
-      GetTrackData();
-      setRenderTrigger(!renderTrigger)
+    //   // Fetch the data for the next song
+    //   setCurrentPosition(0)
+    //   GetTrackData(trackId);
+    //   setRenderTrigger(!renderTrigger)
    
-    }
-    function skipToPreviousTrack() {
-      if(route.params.index!=0)
-      {
-        setCurrentPosition(0)
-        setDefaultLyrics(true)
-        route.params.index--;
-        GetTrackData();
-        setRenderTrigger(!renderTrigger)
-       
-      }
+    // }
+   
+  
+    function skipToNextTrack() {
+      setDefaultLyrics(true);
+    
+      // Increment the index for the next song
+      const nextIndex = route.params.index++ + 1;
+     
+     alert(route.params.index)
+      if (nextIndex < route.params.DataItems.length) {
+     
+
+        const nextTrackId = route.params.DataItems[nextIndex].track.id;
+        GetTrackData(nextTrackId);
+        // Fetch the data for the next song
+        setCurrentPosition(0);
+        setRenderTrigger(!renderTrigger);
       
      
+      }
     }
+   
+  
 
+    function skipToPreviousTrack() {
+      if (route.params.index >= 0) {
+        setCurrentPosition(0);
     
+        const prevIndex = route.params.index!=0 ? route.params.index - 1: route.params.index;
+        const prevTrackId = route.params.DataItems[prevIndex].track.id;
     
+        GetTrackData(prevTrackId);
+        setRenderTrigger(!renderTrigger);
+    
+        route.params.index = prevIndex;
+      }
+    }
     
     const currentlyPlayingGetPosition = async () => {
       try {
@@ -209,7 +271,6 @@ spotifyApi.setAccessToken(access_token);
 
 
        const itemId = result.data.item.id
-      //  setitemIdWithCurrPlaying(itemId)
       setCurrentPosition(positionMs);
 
 
@@ -238,10 +299,9 @@ spotifyApi.setAccessToken(access_token);
     })
     .then((response) => {
       const playbackState = response.data ==""?false:response.data.is_playing;
-  
+      
       if (!playbackState) {
         // Spotify uygulaması müzik çalıyorsa müziği durdurun
-        checkAndStartPlayback();
         startMusic(Track,SongPos);
       } else {
         // PauseMusic();
@@ -256,37 +316,17 @@ spotifyApi.setAccessToken(access_token);
 
     };
 
-    const checkAndStartPlayback = async () => {
-      try {
-        // Kullanıcının çalma durumunu kontrol et
-        const response = await axios.get('https://api.spotify.com/v1/me/player/currently-playing', {
-          headers: {
-            'Authorization': 'Bearer ' + access_token,
-          },
-        });
-    
-        const isPlaying = response.data.is_playing;
-    
-        if (!isPlaying) {
-          // Kullanıcının Spotify uygulamasında çalma durumu aktif değilse, çalma işlemini başlat
-          await startMusic(playlist[0], currentPosition);
-        
-        }
-      } catch (error) {
-        console.error('Çalma durumu kontrol edilirken hata oluştu:', error);
-      }
-    };
-    
+
     const startMusic = async(Track: any,SongPos:number)=>
     {
-      
-      console.log("start music componenti içerisnde : "+access_token);
+  
+      // alert(route.params.PathURis[0])
+
       const data = {
         //Burayı kontrol et çok gazla kayıt geliyor PathURis hatalı kod
-        // context_uri: Track.album.uri,
-          uris:route.params.PathURis[0],
+        uris:["spotify:track:"+Track.id],
           offset: {
-            position: route.params.index,
+            position: 0,
           },
           position_ms: SongPos
         };
@@ -305,7 +345,8 @@ spotifyApi.setAccessToken(access_token);
             }
           )
           .then((response) => {
-           
+            // // setArtist(result.data.artists[0].name);          
+            // // setTrack(result.data.name);
             setTrackText(Track.name)
             setArtistText(Track.artists[0].name)
           })
@@ -342,20 +383,6 @@ spotifyApi.setAccessToken(access_token);
   }
 }
 
-const CustomAlert = ({ message, onDismiss }:{message:any,onDismiss:any}) => {
-  return (
-    <Modal isVisible={true}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <View style={{ backgroundColor: 'white', padding: 20, borderRadius: 10 }}>
-          <Text>{message}</Text>
-          <TouchableOpacity onPress={onDismiss}>
-            <Text>Dismiss</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-};
 
 // const  getTrackId = () => {
 
@@ -377,8 +404,9 @@ const CustomAlert = ({ message, onDismiss }:{message:any,onDismiss:any}) => {
 // };
 
 
-const GetTrackData = () => {
-      const trackIdOnSpotify:string = route.params.DataItems[route.params.index].track.id;
+const GetTrackData = (trackId:string) => {
+  
+      const trackIdOnSpotify:string = trackId==""?route.params.track:trackId;
         axios
           .get(
 
@@ -394,11 +422,10 @@ const GetTrackData = () => {
               )
           .then(result => {
            
-             setIsLyricsFetched(false)
+            setIsLyricsFetched(false)
             setPlaylist([result.data]);
             setDuration(result.data.duration_ms);
-            setArtist(result.data.artists[0].name);          
-            setTrack(result.data.name);
+           
             setitemIdWithOpenSong(result.data.id)
             HandleOpenSong(result.data,0);
             setIsPlaying(true); 
@@ -423,8 +450,8 @@ const GetTrackData = () => {
         
         const options = {
           apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
-         title: track,        
-          artist: artist,
+          title: TrackText,        
+          artist: ArtistText,
           optimizeQuery: true
         };
       
@@ -432,14 +459,13 @@ const GetTrackData = () => {
 
         if (!isLyricsFetched) {
         
-          getLyrics(options)
+           getLyrics(options)
             .then((lyrics: any) => {
               if (lyrics!=null) { // lyrics değeri null değilse replace metodunu çağır
           
                 const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '')
                 setLyrics(lyricsWithoutBrackets);
-              }
-             
+              }             
               setIsLyricsFetched(true); // Bayrağı etkinleştir
             });
         }
@@ -488,7 +514,7 @@ async function HandleOpenSongForZeroTime(newValue:boolean) {
     throw error;
   }
 }
-
+ 
 
 // //NOT PREMIUM
 // const getLyricsFormat = async () => {
@@ -597,26 +623,19 @@ const getTranslateOfLyrics = async () => {
      useEffect(() => {
   
        
-       GetTrackData();
+       GetTrackData("");
       
 
     }, []);
 
 
-    // useEffect(() => {
-
-    //   if (artist ) {
-    //     getTrackId();
-    //   }
-    // }, [artist]);
-
     useEffect(() => {
 
-      if (artist) {
+      if (ArtistText) {
         getLyrics();
         
       }
-    }, [artist]);
+    }, [ArtistText]);
 
     // useEffect(() => {
     //    getTranslateOfLyrics(); 
@@ -624,19 +643,10 @@ const getTranslateOfLyrics = async () => {
     // }, [LanguageSelect]);
 
    
-
-
-
-    // useEffect(()=>
-    // {
-     
-    //     alignText()
-      
-
-    // },[Trues])
-
-
-
+const DualSliders=()=>
+{
+  setIsFirstButtonEnabled(true)
+}
 
     const RenderItem = ({ item, index }: { item: any; index: number }) => {
 
@@ -666,7 +676,7 @@ const getTranslateOfLyrics = async () => {
     };
     
     return (
-      <TouchableOpacity disabled={true}>
+      
       <View>
         <LinearGradient
           // Linear Gradient içeriği
@@ -678,8 +688,8 @@ const getTranslateOfLyrics = async () => {
           <FlatList scrollEnabled={false} data={playlist} renderItem={RenderItem} style={{ top: 180 }} />
           {!isFirstButtonEnabled ? (
             <View style={styles.container}>
-              <Text style={styles.trackTextStyle}>{track}</Text>
-              <Text style={styles.artistTextStyle}>{artist}</Text>
+              <Text style={styles.trackTextStyle}>{TrackText}</Text>
+              <Text style={styles.artistTextStyle}>{ArtistText}</Text>
               <SliderPosition
                 isPlaying={isPlaying}
                 Duration={durationFullTimeOfSong}
@@ -693,13 +703,13 @@ const getTranslateOfLyrics = async () => {
                 onPositionChanged={handlePositionChanged}
               />
               <View style={styles.containerMusicButton}>
-                <TouchableOpacity disabled={true}>
+                <TouchableOpacity>
                   <Icon name="sliders" size={30} color="orange" />
                 </TouchableOpacity>
-                <TouchableOpacity disabled={true} onPress={skipToPreviousTrack} style={styles.SkipTrack}>
+                <TouchableOpacity  onPress={skipToPreviousTrack} style={styles.SkipTrack}>
                   <Ionicons style={[styles.image, { marginLeft: 8 }]} name="play-skip-back-outline" size={42} color="orange" />
                 </TouchableOpacity>
-                <TouchableOpacity disabled={true}
+                <TouchableOpacity 
                   onPress={() => {
                     if (isPlaying) {
                       pause();
@@ -717,11 +727,11 @@ const getTranslateOfLyrics = async () => {
                     )}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity disabled={true} onPress={skipToNextTrack} style={styles.SkipTrack}>
+                <TouchableOpacity  onPress={skipToNextTrack} style={styles.SkipTrack}>
                   <Ionicons style={styles.image} name="play-skip-forward-outline" size={42} color="orange" />
                 </TouchableOpacity>
-                <TouchableOpacity disabled={true}>
-                  <Icon name="sliders" size={30} color="orange" />
+                <TouchableOpacity onPress={ DualSliders }>
+                  <Icon name="sliders" size={30} color="orange" />                  
                 </TouchableOpacity>
               </View>
               {/* Diğer içerik */}
@@ -731,7 +741,7 @@ const getTranslateOfLyrics = async () => {
           )}
           {isFirstButtonEnabled ? (
             <TouchableOpacity style={{ marginVertical: 70 }}>
-              <DualSlider artist={artist} track={track} Duration={durationFullTimeOfSong} />
+              <DualSlider artist={ArtistText} track={TrackText} Duration={durationFullTimeOfSong} />
               <TouchableOpacity style={styles.circleButton} onPress={() => HandleOpenSongForZeroTime(false)}>
                 <AntDesign name="close" style={{ alignItems: 'center' }} size={30} color="black" />
               </TouchableOpacity>
@@ -741,7 +751,7 @@ const getTranslateOfLyrics = async () => {
           )}
         </LinearGradient>
       </View>
-    </TouchableOpacity>
+   
     
     );
   };

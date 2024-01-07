@@ -79,7 +79,49 @@ AsyncStorage.getItem('device_id')
 
   });
 }
+else if (Platform.OS === 'android')
+{
+  AsyncStorage.getItem('access_token')
+  .then(token => {
+    access_token = token;
+    // Diğer işlemler
+  
+  })
+  .catch(error => {
+    // Hata yönetimi
+  });
 
+AsyncStorage.getItem('refresh_token')
+  .then(tokenz => {
+    refresh_token = tokenz;
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
+
+  });
+
+AsyncStorage.getItem('device_id')
+  .then(id => {
+    device_id = id;
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
+
+  });
+  AsyncStorage.getItem('expires_in')
+  .then(id => {
+    
+      expires_in= Number(id);
+
+    // Diğer işlemler
+  })
+  .catch(error => {
+    // Hata yönetimi
+
+  });
+}
 var query:any;
 let letQuery:any;
 var linkOfMusic;
@@ -93,12 +135,11 @@ const params = {
 };
 
 const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
-
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPosition, setCurrentPosition] = useState(0);
   const [initialLoadComplete, setInitialLoadComplete] = useState(true);
-const [loadMoreData, setLoadMoreData] = useState(true);
-const [IsEndReachedFlag, setIsEndReached] = useState(false);
+  const [loadMoreData, setLoadMoreData] = useState(true);
+  const [IsEndReachedFlag, setIsEndReached] = useState(false);
   const [playlist, setPlaylist] = useState<Song[]>([]);  
   const [AllMusicUris, setUris] = useState<[]>([]);  
   // let [searchQuery, setSearchQuery] = React.useState();
@@ -113,7 +154,6 @@ const [IsEndReachedFlag, setIsEndReached] = useState(false);
   const [shouldRefresh, setShouldRefresh] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-
   const [flag,setFlag]=useState(true)
   const refreshFlatList = () => {
     setShouldRefresh(!shouldRefresh);
@@ -198,16 +238,16 @@ let i=0;
   
   useEffect(() => {
 
-  
-    setLoadMoreData(true)
+setLoadMoreData(true)
 getLikedSongs(access_token);
+
 }, [access_token]);
  // Verileri yükleme işlevi
 
 
-  function  GoToOpenMusic(trackInfoTrackId: any,index:number) {
+  function GoToOpenMusic(trackInfoTrackId: any,index:number) {
     console.log("Uris göndermelisin pathuris yerine track uris")
-    navigation.navigate('OpenMusicSelect', { track: trackInfoTrackId,index,PathURis:AllMusicUris,DataItems:playlist });
+    navigation.navigate('OpenMusicSelect', { track: trackInfoTrackId,index,DataItems:playlist });
     
   }
 
@@ -327,11 +367,17 @@ getLikedSongs(access_token);
     onPress={() => GoToOpenMusic(item.track.id, index)}
     style={styles.listItem}
   >
-    <Image
+    {/* <Image
       source={{ uri: item.track.album.images[0]?.url || '' }} 
       style={styles.albumCover}
      
-    />
+    /> */}
+    <Image
+  source={{ uri: item.track.album.images[0]?.url || '' }}
+  style={styles.albumCover}
+  resizeMode="cover"
+  // placeholderSource={require('../path/to/placeholder.png')}
+/>
     <View style={styles.textContainer}>
       <Text style={styles.songName}>{item.track.name}</Text>
       <Text style={styles.artistName}>
