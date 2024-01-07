@@ -8,9 +8,11 @@ import RangeSlider from './RangeSlider';
 import { platform } from 'os';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LyricsComponent from './lyricsComponent';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { skip } from 'node:test';
 let access_token="";
 
-const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTime,Duration,onPositionChanged, itemIdOpen ,isFirstTime,renderTrigger,skipToNextTrack ,lyrics}:{isPlaying:any,RestartPosition:any, HandleOpenSongForZeroTime:any,Duration:any,onPositionChanged:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,skipToNextTrack:()=>void,lyrics:any}) => {
+const SliderPosition =  ({ isPlaying ,HandleOpenSongForZeroTime,DefaultLyrics,Duration, onSkipToNextTrack,itemIdOpen ,isFirstTime,renderTrigger,lyrics,skipToNextTrack}:{isPlaying:any,onSkipToNextTrack:any,DefaultLyrics:any, HandleOpenSongForZeroTime:any,Duration:any, itemIdOpen:any,isFirstTime:any,renderTrigger:any,lyrics:any,skipToNextTrack:()=>void}) => {
  
   if (Platform.OS === "web") {
     access_token = window.localStorage.getItem("access_token") || "";
@@ -36,54 +38,13 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
   }
   const [intervalId, setIntervalId] = useState<any>(null); 
   const [position, setPosition] = useState(0);
+  const[defaultlyrics,setdefaultlyric] = useState(false)
   const [StatusrenderTrigger, setrenderTrigger] = useState(false);
-  const handleVibrate = () => {
-    // Cihazda titreşim gerçekleştirme
-   
-      // Trigger a vibration
-    
-        // Trigger a vibration
-        Vibration.vibrate(9);
-  };
-
-  const handleImpact = () => {
-    // Haptic feedback ile bir etki oluşturma
-    
-  };
-  
-  useEffect(()=>
-  {
-
-    if(RestartPosition)
-    {
-   
-      setPosition(0)
-      HandleOpenSongForZeroTime(false)
-    }
-  },[RestartPosition]);
-
-  const handlePositionChange = (value:number) => {
-      
-      setPosition(value);
-
-      if (onPositionChanged) {
-      
-        onPositionChanged(value);
-      }
-  
-  };
-
-  const OnSlidingComplete = (value:number) => {
-   
-    if(isPlaying!=false)
-    {
-   handleOpenSongForTimeWithSwitch(value) 
-   WhileCurrentlyPlay()
-  }
-};
 
 
 
+
+ 
 
   const msToTime = (ms: any) => {
     const minutes = Math.floor(ms / 60000);
@@ -100,28 +61,7 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
   };
 
-//   const TimerPosition = async () => {
-//     try {
-//       clearInterval(intervalId);
-//       const id = setInterval(() => {
-//         setPosition((prevPosition) => {
-//           const newPosition = prevPosition + 1000;
-//           if (newPosition >= Duration) {
-//             skipToNextTrack();ositionChanged(value);
 
-//             clearInterval(id);
-//           } else {
-//             setPosition(newPosition);
-//           }
-//           return newPosition;
-//         });
-//       }, 1000);
-//       setIntervalId(id);
-//     } catch (error) {
-//       console.error(error);
-//       throw error;
-//     }
-// };
   const WhileCurrentlyPlay = async () => {
     try {
       clearInterval(intervalId);
@@ -130,7 +70,8 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
           const newPosition = prevPosition + 1000;
           if (newPosition >= Duration) {
            
-            skipToNextTrack();
+            setPosition(0)
+           skipToNextTrack();
             clearInterval(id);
           } else {
             setPosition(newPosition);
@@ -157,6 +98,8 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
     alert(ms)
   }
 
+
+
   useEffect(() => {
     
     if(StatusrenderTrigger!=renderTrigger)
@@ -178,9 +121,9 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
     }
   }, [isPlaying,renderTrigger]);
 
- 
   
-
+  
+ 
   const handleOpenSongForTimeWithSwitch = async (ms:any) => {
   
     const flooredMs = Math.floor(ms);
@@ -213,7 +156,7 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
       alignSelf: 'center', 
       height: '45%'  }}>
        
-    <TouchableHighlight onPress={handleVibrate}
+    <TouchableHighlight 
         underlayColor="#EDEDED">
         <Text style={styles.msToTime}>{msToTime(position)}</Text>
         </TouchableHighlight>
@@ -222,7 +165,9 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
         minimumValue={0}
         maximumValue={Duration}
         value={position}        
-        onValueChange={handlePositionChange}
+      //  onValueChange={handlePositionChange}
+
+
         onSlidingComplete={(value) => {
          
           if(isPlaying)
@@ -241,8 +186,8 @@ const SliderPosition =  ({ isPlaying , RestartPosition, HandleOpenSongForZeroTim
    
 
  <Text style={styles.msToTimeLast}>{msToTimeLast(Duration)}</Text>
+ <LyricsComponent currentTime={position} lyrics={lyrics} Duration={Duration} isPlaying={isPlaying} skipToNextTrack={skipToNextTrack} ></LyricsComponent>
 
- <LyricsComponent currentTime={position} lyrics={lyrics} Duration={Duration} isPlaying={isPlaying} skipToNextTrack={skipToNextTrack} PositionChange={handlePositionChange} SlidingComplete={OnSlidingComplete}></LyricsComponent>
     </View>
 
 
@@ -257,16 +202,24 @@ const styles = StyleSheet.create({
     top:27,
     left: 180,
     fontSize: 12,
-   
+   color:'orange'
     
     
   }, msToTimeLast : {
     position: 'absolute',
     right: 180,
     fontSize: 12,
-   
+   color:"orange",
     top:27
     
+  },SkipTrack:{
+     
+    margin: 18,
+    
+},
+  image:{
+    width:  50, 
+    height: 50
   },
   trackTextStyle : {
     bottom:230,

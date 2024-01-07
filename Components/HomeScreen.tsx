@@ -6,7 +6,6 @@ import SystranForTranslate from "./TranslateAPI/SystranForTranslate";
 import GoogleTranslate from "./TranslateAPI/GoogleTranslate";
 import { white } from "react-native-paper/lib/typescript/src/styles/themes/v2/colors";
 import { useEffect, useState ,useRef} from 'react';
-
 import axios from "axios";
 import queryString from 'query-string';
 

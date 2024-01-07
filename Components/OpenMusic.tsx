@@ -26,9 +26,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import LyricsComponent from './lyricsComponent';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { LyricsElementModel } from '../Models/lyrics';
-
 import Modal from 'react-native-modal';
+import RNRestart from 'react-native-restart';
+import {reloadAsync} from 'expo-updates'
+import * as Updates from "expo-updates"
+import CodePush from 'react-native-code-push';
 
+
+;
 let device_id:any ="";
 let access_token:any="";
 let apiKeyForSystran:any="";
@@ -146,7 +151,6 @@ spotifyApi.setAccessToken(access_token);
  
 
   const OpenMusicSelect = ({ route,navigation}:{route:any,navigation:any}) => {
-
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [playlist, setPlaylist] = useState<ArtistNames[]>([]);
@@ -165,7 +169,6 @@ spotifyApi.setAccessToken(access_token);
     const [itemIdOpen, setitemIdWithOpenSong] = useState('');
     const [isFirstTime, setisFirstTime] = useState(true);
     const [renderTrigger, setRenderTrigger] = useState(false);
-    const [RestartPosition, setRestartPosition] = useState(false);
     const [LanguageSelect, setLanguageSelect] = useState("");
     const [DefaultLyrics, setDefaultLyrics] = useState(false);
     const [isLyricsFetched, setIsLyricsFetched] = useState(false);
@@ -175,7 +178,11 @@ spotifyApi.setAccessToken(access_token);
     const [currentPosition, setCurrentPosition] = useState(0);
     const[TrackText,setTrackText] = useState('')
     const[ArtistText,setArtistText] = useState('')
-
+    const [selectedValue, setSelectedValue] = useState(0);
+    const [isLyricsVisible, setIsLyricsVisible] = useState(false);
+    const sourceRef = useRef({
+      token: null,
+    });
   
     const handlePressSecondButton = () => {
       setIsFirstButtonEnabled(true);
@@ -186,6 +193,7 @@ spotifyApi.setAccessToken(access_token);
 
     const handlePositionChanged = (position: number) => {
      setCurrentPosition(position)
+    
     };
 
   
@@ -208,50 +216,36 @@ spotifyApi.setAccessToken(access_token);
     //  setIntervalId(null);
     };
 
-    // function skipToNextTrack() {
-     
-    //   setDefaultLyrics(true)
-    //   // Increment the index for next song
-    //  const trackId = route.params.DataItems[route.params.index++].track.id;     
-    
-    //   // Fetch the data for the next song
-    //   setCurrentPosition(0)
-    //   GetTrackData(trackId);
-    //   setRenderTrigger(!renderTrigger)
    
-    // }
-   
-  
-    function skipToNextTrack() {
-      setDefaultLyrics(true);
+    async function skipToNextTrack() {
+      setCurrentPosition(0);
+      setIsPlaying(true);
     
       // Increment the index for the next song
-      const nextIndex = route.params.index++ + 1;
-     
-     alert(route.params.index)
+      const nextIndex = route.params.index + 1;
+    
       if (nextIndex < route.params.DataItems.length) {
-     
-
+        // Kullanılmadan önce index'i artır
+        route.params.index++;
+    
         const nextTrackId = route.params.DataItems[nextIndex].track.id;
-        GetTrackData(nextTrackId);
-        // Fetch the data for the next song
-        setCurrentPosition(0);
+    
+        await GetTrackData(nextTrackId);
+  
         setRenderTrigger(!renderTrigger);
-      
-     
       }
+      // setIsLyricsFetched(false)
     }
-   
   
 
-    function skipToPreviousTrack() {
+    async function skipToPreviousTrack() {
       if (route.params.index >= 0) {
-        setCurrentPosition(0);
-    
+      
+        setIsLyricsFetched(false);
         const prevIndex = route.params.index!=0 ? route.params.index - 1: route.params.index;
         const prevTrackId = route.params.DataItems[prevIndex].track.id;
     
-        GetTrackData(prevTrackId);
+        await GetTrackData(prevTrackId);
         setRenderTrigger(!renderTrigger);
     
         route.params.index = prevIndex;
@@ -287,31 +281,10 @@ spotifyApi.setAccessToken(access_token);
     
  
   
-    const HandleOpenSong = (Track: any,SongPos:number) => {
-    // APIRun
-    console.log("HandleOpenSong logu OpenMusic Component içerisinde bulunur.Log :" + access_token)
+     const  HandleOpenSong = async(Track: any,SongPos:number) => {
+      await startMusic(Track,SongPos);
+
     
-    axios
-    .get('https://api.spotify.com/v1/me/player', {
-      headers: {
-        Authorization: 'Bearer ' + access_token, // Erişim belirteci (access token)
-      },
-    })
-    .then((response) => {
-      const playbackState = response.data ==""?false:response.data.is_playing;
-      
-      if (!playbackState) {
-        // Spotify uygulaması müzik çalıyorsa müziği durdurun
-        startMusic(Track,SongPos);
-      } else {
-        // PauseMusic();
-        // Spotify uygulaması müzik çalmıyorsa müziği başlatın
-        startMusic(Track,SongPos);
-      }
-    })
-    .catch((error) => {
-      console.error('Çalma durumu alınırken hata oluştu:', error);
-    });
 
 
     };
@@ -345,16 +318,23 @@ spotifyApi.setAccessToken(access_token);
             }
           )
           .then((response) => {
-            // // setArtist(result.data.artists[0].name);          
-            // // setTrack(result.data.name);
-            setTrackText(Track.name)
-            setArtistText(Track.artists[0].name)
+       
           })
           .catch((error:any) => {
                      
             if (error.response.status === 404) {
-              alert("Please Open Any Song From Your Spotify Mobile App Then Try Again");
-            }
+              Alert.alert(
+                  "Uyarı",
+                  "Lütfen Spotify Mobil Uygulamanızdan herhangi bir şarkıyı açın ve tekrar deneyin.",
+                  [
+                      {
+                          text: "Tamam",
+                          onPress: () => Updates.reloadAsync()
+                      },
+                     
+                  ]
+              );
+          }
             else{
              
               axiosInstance.get("");
@@ -384,91 +364,49 @@ spotifyApi.setAccessToken(access_token);
 }
 
 
-// const  getTrackId = () => {
 
-//   axios
-//     .get(`https://api.musixmatch.com/ws/1.1/track.search`, {
-//       params: {
-//         q_artist: artist,
-//         q_track: track,
-//         apikey:apiKey
-//       },
-//     })
-//     .then(response => {
+const GetTrackData = async (trackId: string) => {
+  try {
+    const trackIdOnSpotify = trackId === "" ? route.params.track : trackId;
+    
 
-//       // setTrackId(response.data.message.body.track_list[0].track.track_id);
-//     })
-//     .catch(error => {
-//       console.error(error);
-//     });
-// };
+   
+    const result = await axios.get(
+      `https://api.spotify.com/v1/tracks/${trackIdOnSpotify}`,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+       
+      }
+    );
 
-
-const GetTrackData = (trackId:string) => {
   
-      const trackIdOnSpotify:string = trackId==""?route.params.track:trackId;
-        axios
-          .get(
 
-            "https://api.spotify.com/v1/tracks/" +trackIdOnSpotify,
-            {
-
-              headers: {
-                Authorization: `Bearer ${access_token}`,
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-            }
-              )
-          .then(result => {
-           
-            setIsLyricsFetched(false)
-            setPlaylist([result.data]);
-            setDuration(result.data.duration_ms);
-           
-            setitemIdWithOpenSong(result.data.id)
-            HandleOpenSong(result.data,0);
-            setIsPlaying(true); 
-            
-            
-          })
-          .catch(error => {
-            console.log("An error occurred while fetching the playlist:", error);
-            if(Platform.OS==='web')
-            {
-
-              window.localStorage.setItem("access_token", '');
-            }
-            else if(Platform.OS==='ios')
-            {
-              AsyncStorage.setItem("access_token", '')
-            }
-           
-            axiosInstance.get("")
-          });
-        };
-        
-        const options = {
-          apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
-          title: TrackText,        
-          artist: ArtistText,
-          optimizeQuery: true
-        };
-      
-        
-
-        if (!isLyricsFetched) {
-        
-           getLyrics(options)
-            .then((lyrics: any) => {
-              if (lyrics!=null) { // lyrics değeri null değilse replace metodunu çağır
-          
-                const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '')
-                setLyrics(lyricsWithoutBrackets);
-              }             
-              setIsLyricsFetched(true); // Bayrağı etkinleştir
-            });
-        }
+    HandleOpenSong(result.data, 0);  
+    setTrackText(result.data.name);
+    setDefaultLyrics(true)
+    setIsLyricsFetched(false);
+    setPlaylist([result.data]);
+    setDuration(result.data.duration_ms);
+    setitemIdWithOpenSong(result.data.id);
+    setIsPlaying(true);
+    setCurrentPosition(0);
+    setArtistText(result.data.artists[0].name);
+  }  catch (error) {
+    console.log("An error occurred while fetching the playlist:", error);
+    if (Platform.OS === "web") {
+      window.localStorage.setItem("access_token", "");
+    } else if (Platform.OS === "ios") {
+      AsyncStorage.setItem("access_token", "");
+    }
+    axiosInstance.get("");
+  }
+};
+  
+       
         
         
 
@@ -506,8 +444,6 @@ async function HandleOpenSongForZeroTime(newValue:boolean) {
         Authorization: `Bearer ${access_token}`,
       },
     });
-    console.log('Şarkı 0 ms konumunda başlatıldı.');
-    setRestartPosition(newValue)
     return response;
   } catch (error) {
     console.error(error);
@@ -516,6 +452,10 @@ async function HandleOpenSongForZeroTime(newValue:boolean) {
 }
  
 
+const handleDisableButton = () => {
+
+  setIsFirstButtonEnabled(false);
+};
 // //NOT PREMIUM
 // const getLyricsFormat = async () => {
 //   try {
@@ -542,106 +482,60 @@ async function HandleOpenSongForZeroTime(newValue:boolean) {
 // };
 
 
-const getTranslateOfLyrics = async () => {
-  
-  setDefaultLyrics(false)
-  let originalLines =[];
-  let translatedLines ="";
-  try {
-    
-    
-    if(lyrics!=""){
-
-
-      try {
-        const requestData = {
-          input: lyrics,
-          target: LanguageSelect,
-        };
-      
-        const response = await axios.post(
-          "https://api-translate.systran.net/translation/text/translate",
-          requestData,
-          {
-            params: {
-              key: apiKeyForSystran ,
-            },
-          }
-        );
-      
-        const translatedText = response.data.outputs[0].output;
-      
-        const originalLines = lyrics
-          .split("\n")
-          .map((line) => line.trim())
-          .filter((line) => line.length > 0);
-      
-        const translatedLines = translatedText
-          .split("\n")
-          .map((line:any) => line.trim())
-          .filter((line:any) => line.length > 0);
-      
-        const maxLength = Math.max(originalLines.length, translatedLines.length);
-      
-        const alignedLines = [];
-        for (let i = 0; i < maxLength; i++) {
-          const originalLine = originalLines[i] || "";
-          const translatedLine = translatedLines[i] || "";
-      
-          alignedLines.push(originalLine, translatedLine);
-        }
-      
-        const alignedText = alignedLines.join("\n");
-      
-        setTranslateOfLyrics(alignedText.trim());
-      } catch (error:any) {
-        console.log("Lyrics not loading")
-        // Hata yönetimini burada gerçekleştirin veya hata durumunu kullanıcıya bildirin
-      }
-  
-    }
-  else{
-    
-    setDefaultLyrics(true)
-  }
-  }
-    
-  catch (error) {
-    if(error=="Error: Request failed with status code 400")
-    {
-      setDefaultLyrics(true)
-    }
-    else{
-      alert("The language of the song does not support the target language");
-      setDefaultLyrics(true)
-      
-    }
-  }
-};
-
 
      useEffect(() => {
   
        
        GetTrackData("");
-      
-
+       
     }, []);
 
 
-    useEffect(() => {
-
-      if (ArtistText) {
-        getLyrics();
-        
-      }
-    }, [ArtistText]);
-
     // useEffect(() => {
-    //    getTranslateOfLyrics(); 
-    
-    // }, [LanguageSelect]);
 
+    //   if (ArtistText) {
+       
+      
+    //     getLyricsMethod();
+    //   }
+    // }, [ArtistText]);
+
+    const getLyricsMethod =()=>{
+
+
+      let i=0;
+      const options = {
+        apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
+        title: TrackText ,
+        artist: ArtistText ,
+        optimizeQuery: true
+      };
+      
+      if (!isLyricsFetched) {
+      
+       
+        getLyrics(options)
+
+         .then((lyrics: any) => {
+           if (lyrics!=null) { // lyrics değeri null değilse replace metodunu çağır
+   
+      
+      
+             const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '')
+           
+            
+             setLyrics(lyricsWithoutBrackets);
+            }             
+            else {
+              setLyrics("");
+            }
+         
+          });
+     }
+    } 
+     
+
+   
    
 const DualSliders=()=>
 {
@@ -665,11 +559,6 @@ const DualSliders=()=>
             />
       
      
-
-         
-
-
-
         </View>
 
       );
@@ -680,8 +569,8 @@ const DualSliders=()=>
       <View>
         <LinearGradient
           // Linear Gradient içeriği
-          colors={['rgba(0,0,0,0.8)', 'transparent']}
-          style={{ backgroundColor: "white", zIndex: -999999999999999999, height: 920 }}
+          colors={['black']}
+          style={{ backgroundColor: "orange", zIndex: -999999999999999999, height: 920 }}
           start={{ x: 0.5, y: 1 }}
           end={{ x: 0.5, y: 0 }}
         >
@@ -692,21 +581,25 @@ const DualSliders=()=>
               <Text style={styles.artistTextStyle}>{ArtistText}</Text>
               <SliderPosition
                 isPlaying={isPlaying}
+                DefaultLyrics={true}
                 Duration={durationFullTimeOfSong}
-                RestartPosition={RestartPosition}
+                
                 HandleOpenSongForZeroTime={HandleOpenSongForZeroTime}
                 itemIdOpen={itemIdOpen}
                 isFirstTime={isFirstTime}
                 renderTrigger={renderTrigger}
                 skipToNextTrack={skipToNextTrack}
                 lyrics={lyrics}
-                onPositionChanged={handlePositionChanged}
+                // onPositionChanged={handlePositionChanged}
+                onSkipToNextTrack ={true}
               />
+            
               <View style={styles.containerMusicButton}>
                 <TouchableOpacity>
                   <Icon name="sliders" size={30} color="orange" />
                 </TouchableOpacity>
                 <TouchableOpacity  onPress={skipToPreviousTrack} style={styles.SkipTrack}>
+               
                   <Ionicons style={[styles.image, { marginLeft: 8 }]} name="play-skip-back-outline" size={42} color="orange" />
                 </TouchableOpacity>
                 <TouchableOpacity 
@@ -729,7 +622,7 @@ const DualSliders=()=>
                 </TouchableOpacity>
                 <TouchableOpacity  onPress={skipToNextTrack} style={styles.SkipTrack}>
                   <Ionicons style={styles.image} name="play-skip-forward-outline" size={42} color="orange" />
-                </TouchableOpacity>
+                  </TouchableOpacity>
                 <TouchableOpacity onPress={ DualSliders }>
                   <Icon name="sliders" size={30} color="orange" />                  
                 </TouchableOpacity>
@@ -741,15 +634,15 @@ const DualSliders=()=>
           )}
           {isFirstButtonEnabled ? (
             <TouchableOpacity style={{ marginVertical: 70 }}>
-              <DualSlider artist={ArtistText} track={TrackText} Duration={durationFullTimeOfSong} />
-              <TouchableOpacity style={styles.circleButton} onPress={() => HandleOpenSongForZeroTime(false)}>
-                <AntDesign name="close" style={{ alignItems: 'center' }} size={30} color="black" />
-              </TouchableOpacity>
+              <DualSlider artist={ArtistText} track={TrackText} Duration={durationFullTimeOfSong}  onClosePressed={handleDisableButton}/>
+             
             </TouchableOpacity>
           ) : (
             ""
           )}
+          
         </LinearGradient>
+        
       </View>
    
     
@@ -806,11 +699,12 @@ const DualSliders=()=>
       zIndex:99999999,
       fontSize: 18,
       fontFamily:'Avenir-Heavy',
-      textAlign: 'center'
+      textAlign: 'center',
+      color:'orange'
     },
     artistTextStyle:{
       top:200,
-     
+      color:'orange',
       justifyContent:'center',
       zIndex:99999999,
       fontSize: 17,

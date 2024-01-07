@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useEffect, useState,useRef } from 'react';
-import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,ScrollView,RefreshControl, ActivityIndicator  } from 'react-native';
+import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,ScrollView,RefreshControl, ActivityIndicator, Vibration ,Modal } from 'react-native';
 import { ArtistNames } from "../Models/artistModel";
 import axios, { AxiosResponse } from 'axios';
 import SearchBar from "../Components/Search";
@@ -22,7 +22,7 @@ import APIRun from "./API";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FixedSizeList } from 'react-window';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import * as Haptics from 'expo-haptics';
 
 let device_id:any ="";
 let access_token:any ="";
@@ -193,29 +193,32 @@ let i=0;
       if (response && initialLoadComplete) {
         //alert("girdi2")
         data = response.data;
-        allLikedSongs.push(...data.items);
-        setPlaylist(allLikedSongs)
-       
+       allLikedSongs.push(...data.items);
+        // setPlaylist(allLikedSongs)
+        
         setInitialLoadComplete(false);
+       
         
       }
-  
+     
       while (data.next) {
        
       if(loadMoreData)
       {
         response = await axios.get(data.next, { headers });
+        
         if (response) {
-       
+          
           data = response.data;
           
           allLikedSongs.push(...data.items);
           
+          setPlaylist(allLikedSongs)
           uris.push(allLikedSongs.map((item:any) => item.track.uri)); //Yalnızca item verileri içierisndne item track uriyi alır
           
           setUris(uris);
-          setPlaylist(allLikedSongs)
-        
+          setIsLoading(false)
+          
         }
         
       }
@@ -232,7 +235,7 @@ let i=0;
             
           }
     }
-    setIsLoading(false)
+    
   }
  
   
@@ -307,12 +310,21 @@ getLikedSongs(access_token);
   // const loadMoreData = async () => {
   //   // Yeni verileri yükleme işlemi burada yapılabilir.
   //   // Örnek: Daha fazla şarkı yüklemek için getLikedSongs işlevini çağırabilirsiniz.
-    
+     const [isModalVisible, setModalVisible] = useState(false);
 
-    
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
+
   //   getLikedSongs(access_token)
   // };
+  const handleLongPress = () => {
+    // Haptic feedback ekleyerek cihazın titremesini sağla
+  toggleModal();
 
+   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  };
 
   const loadMoreDataTrigger = () => {
    //alert("loadMoreDataTrigger")
@@ -324,19 +336,17 @@ getLikedSongs(access_token);
 
   return (
     <LinearGradient
-    colors={['#141e30', '#243b55', '#141e30']}
-    style={styles.container}
+    colors={['black']}
+          style={[{ backgroundColor: "black", zIndex: -999999999999999999, height: 920 },styles.container]}
+          // start={{ x: 0.5, y: 0 }}
+          // end={{ x: 0.5, y: 1 }}
   >
-    <Searchbar
-        placeholder="Search"
-        onChangeText={updateSearch}
-        value={searchQuery}
-        style={styles.searchbar}
-      />
+   
     
    {isLoading ? (
     // Bekleme görseli
     <View style={styles.loadingContainer}>
+      
     <ActivityIndicator size="large" color="#0000ff" />
   </View>
   ) : (
@@ -347,25 +357,34 @@ getLikedSongs(access_token);
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />
       }
-      // onScroll={({ nativeEvent }) => {
-      //   const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-      //   const isEndReached =
-      //     layoutMeasurement.height + contentOffset.y >=
-      //     contentSize.height - 1350;
-      //   if (isEndReached && !IsEndReachedFlag) {
-      //     setIsEndReached(true);
-      //     alert(isEndReached)
-      //     loadMoreDataTrigger();
-      //   }
-      // }}
-      scrollEventThrottle={20}
-    >
       
+      onScroll={({ nativeEvent }) => {
+        const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+        const isEndReached =
+          layoutMeasurement.height + contentOffset.y >=
+          contentSize.height - 1350;
+        if (isEndReached && !IsEndReachedFlag) {
+          setIsEndReached(true);
+          alert(isEndReached)
+          loadMoreDataTrigger();
+        }
+      }}
+      scrollEventThrottle={20}
+    > 
+      <Searchbar
+  placeholder="Search"
+  onChangeText={updateSearch}
+  value={searchQuery}
+  style={styles.searchbar}
+/>
       {memoizedData.map((item: Song, index: number) => (
+        
   <TouchableOpacity
     key={item.track.id}
     onPress={() => GoToOpenMusic(item.track.id, index)}
     style={styles.listItem}
+ delayLongPress={100}
+  onLongPress={handleLongPress}
   >
     {/* <Image
       source={{ uri: item.track.album.images[0]?.url || '' }} 
@@ -384,31 +403,41 @@ getLikedSongs(access_token);
         {item.track.artists[0]?.name || ''} 
       </Text>
     </View>
+      
   </TouchableOpacity>
+  
 ))}
 
+ <Modal transparent={true} visible={isModalVisible} animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>This is a modal</Text>
+            <Button title="Close Modal" onPress={toggleModal} />
+          </View>
+        </View>
+      </Modal>
 
-
-
-    </ScrollView>)}
+    </ScrollView>
+    )}
   </LinearGradient>
   );
 };
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+   
   },
   scrollViewContainer: {
-   
+
     paddingVertical: 16,
     paddingHorizontal: 16,
   },
   listItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'orange',
     borderRadius: 16,
-    paddingVertical: 15, // Önceki değeri azaltabilirsiniz
-    paddingHorizontal: 15, // Önceki değeri azaltabilirsiniz
-    marginBottom: 8, // İstediğiniz boşluğa göre ayarlayabilirsiniz
+    paddingVertical: 10, // Önceki değeri azaltabilirsiniz
+    paddingHorizontal: 10, // Önceki değeri azaltabilirsiniz
+    marginBottom: 15, // İstediğiniz boşluğa göre ayarlayabilirsiniz
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -419,7 +448,22 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 12,
+  }, 
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0)', // Bu renk transparan siyah bir arka plan sağlar
+  },
+  modalContent: {
+    width: 200, // İstediğiniz genişliği ayarlayın
+    height: 200, // İstediğiniz yüksekliği ayarlayın
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   songName: {
     fontSize: 16, // Önceki değeri azaltabilirsiniz

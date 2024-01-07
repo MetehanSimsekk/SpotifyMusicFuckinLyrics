@@ -5,23 +5,67 @@ import axios from 'axios';
 import { AntDesign } from '@expo/vector-icons';
 import SliderPosition from './SliderMusicLine';
 import { Platform } from 'react-native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 let access_token:any = "";
+let params:any="";
+let device_id:any ="";
+let apiKeyForSystran:any="";
 if(Platform.OS === 'web')
 {
  access_token  = window.localStorage.getItem("access_token")
 }
-const MySlider = ({artist,track,Duration}:{artist:any,track:any,Duration:any}) => {
+
+if (Platform.OS === 'ios') {
+  AsyncStorage.getItem('access_token')
+    .then(token => {
+      access_token = token;
+      // Diğer işlemler
+    })
+    .catch(error => {
+    
+
+      console.error(error);
+      // Hata yönetimi
+    });
+
+  AsyncStorage.getItem('device_id')
+    .then(id => {
+      device_id = id;
+
+       params = {
+        "device_id": device_id 
+       
+      };
+      // Diğer işlemler
+    })
+    .catch(error => {
+
+      console.error(error);
+    });
+
+  AsyncStorage.getItem('apiKeyForSystran')
+    .then(apiKey => {
+      apiKeyForSystran = apiKey;
+      // Diğer işlemler
+    })
+    .catch(error => {
+     console.error(error);
+    });
+    params = {
+      "device_id": device_id || "" 
+     
+    };
+}
+const MySlider = ({artist,track,Duration,onClosePressed}:{artist:any,track:any,Duration:any,onClosePressed:any}) => {
   const [values, setValues] = useState('00:00');
   const [valuesOther, setValuesOther] = useState('00:00');
   const intervalRef = useRef<NodeJS.Timer  | null>(null);
   const [counter, setCounter] = useState(0); // Not Premium Properties
   const [position, setPosition] = useState(1);
   
-   const [RestartPosition ,setRestartPosition ] = useState(false);
   const multiSliderValuesChange = (values:any) => {
-
- 
+  
+    
    
     const totalMinutes =values[0]
     const hours = Math.floor(totalMinutes / 60);
@@ -51,7 +95,7 @@ const MySlider = ({artist,track,Duration}:{artist:any,track:any,Duration:any}) =
 
 
 
-
+ 
   if (totalMinutes >= parseInt(valuesOther.substring(0, 2)) * 60 + parseInt(valuesOther.substring(3))) {
     setValues(formattedTime);
     setValuesOther(formattedTime);
@@ -80,10 +124,10 @@ const MySlider = ({artist,track,Duration}:{artist:any,track:any,Duration:any}) =
           Authorization: `Bearer ${access_token}`,
         },
       });
-      console.log(`Şarkı ${ms} ms konumunda başlatıldı.`);
+      
       return response;
     } catch (error) {
-      console.error(error);
+      
       throw error;
     }
   
@@ -131,9 +175,33 @@ const MySlider = ({artist,track,Duration}:{artist:any,track:any,Duration:any}) =
   
   };
 
+  const stopInterval = () => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+    }
+  };
+
+   const HandlePressForZeroTime = (onClosePressed: any) => { {
+    onClosePressed(false); 
+    
+    stopInterval();
+      try {
+        const response =  axios({
+          method: 'PUT',
+          url: `https://api.spotify.com/v1/me/player/seek?position_ms=0`,
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        });
+        return response;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    }}
   return (
     <View style={styles.container}>
-           <Text style={styles.trackTextStyle}>{track}</Text>
+    <Text style={styles.trackTextStyle}>{track}</Text>
     <Text style={styles.artistTextStyle}>{artist}</Text>
       <Slider
         style={styles.slider}
@@ -173,8 +241,14 @@ const MySlider = ({artist,track,Duration}:{artist:any,track:any,Duration:any}) =
       />
       <Text style={styles.textValues}>{values}</Text>
       <Text style={styles.textValuesOther}>{valuesOther}</Text>
-     
+    <View>
+    {/* onPress={() => HandleOpenSongForZeroTime(false)} */}
+    <TouchableOpacity style={styles.circleButton}  onPress={() => HandlePressForZeroTime(onClosePressed)}>
+                <AntDesign name="close" style={{ alignItems: 'center' }} size={30} color="black" />
+    </TouchableOpacity>
     </View>
+    </View>
+    
   );
 };
 
@@ -184,54 +258,67 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
-    marginVertical:100
+    marginBottom: 230, // marginVertical yerine marginBottom kullanıldı
   },
   slider: {
     width: '80%',
-    top:3,
+    top: 3,
     height: 30,
     margin: 10,
+    
   },
   textValues: {
     fontSize: 20,
-    top:-10,
+    top: -10,
     marginHorizontal: 0,
-    position:'absolute'
-    
+    position: 'absolute',
+    color:'orange'
+  },
+  circleButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 25,
+    backgroundColor: 'orange',
+    justifyContent: 'center',
+    alignItems: 'center',
+    bottom: -31, // marginVertical yerine marginBottom kullanıldı
   },
   textValuesOther: {
-    fontSize: 20,   
-    top:1,
+    fontSize: 20,
+    top: 1,
     marginVertical: 50,
-    position:'absolute'
-
+    position: 'absolute',
+    color:'orange',
   },
   button: {
     padding: 10,
     borderRadius: 20,
     backgroundColor: 'orange',
   },
-  trackTextStyle : {
-    position:'absolute',
-    justifyContent:'center',
-    zIndex:99999999,
+  trackTextStyle: {
+    position: 'absolute',
+    justifyContent: 'center',
+    zIndex: 99999999,
     fontSize: 18,
-    fontFamily:'Avenir-Heavy',
+    fontFamily: 'Avenir-Heavy',
     textAlign: 'center',
-    bottom:62.5
+    bottom: 62.5,
+    color:'orange',
+
   },
-  artistTextStyle:{
- 
-    position:'absolute',
-    justifyContent:'center',
-    zIndex:99999999,
+  artistTextStyle: {
+    position: 'absolute',
+    justifyContent: 'center',
+    zIndex: 99999999,
     fontSize: 17,
-    fontFamily:'Avenir-Light',
+    fontFamily: 'Avenir-Light',
     textAlign: 'center',
-    bottom:39
+    bottom: 39,
+    color:'orange',
 
   },
 });
+
 
 export default MySlider;
 

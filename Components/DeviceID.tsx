@@ -2,10 +2,12 @@ import axios from "axios";
 import { CommonActions, NavigationContainerRef,ParamListBase  } from '@react-navigation/native';
 import { useRef }  from 'react';
 import axiosInstance from "./TokenTimeGoToRefreshToken/RefreshToken";
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { platform } from "os";
 import APIRun from "./API";
+import * as Updates from "expo-updates"
+
 let accessToken:any
 let accessTokenOnMobile:any;
  let device_id:any;
@@ -45,7 +47,6 @@ console.log("Mobile Token : " + accessTokenOnMobile)
          alert("Please First Open Spotify API")
         } else {
           alert("Please First Open Spotify API")
-         
           console.log(error+"Bu hata lyricsComponent içerisinde alınmıştır")
           //  APIRun()
           // alert("Hata Apptsx : " + error);
@@ -143,8 +144,18 @@ console.log("Mobile Token : " + accessTokenOnMobile)
         .catch(error => {
           console.log("error" + error);
 
-          if (error === "TypeError: Cannot read properties of undefined (reading 'id') ") {
-            alert("Please Open Spotify App First");
+          if (error === "TypeError: Cannot read properties of undefined (reading 'id') ") {            
+            Alert.alert(
+              "Uyarı",
+              "Lütfen Spotify Mobil Uygulamanızdan herhangi bir şarkıyı açın ve tekrar deneyin.",
+              [
+                  {
+                      text: "Tamam",
+                      onPress: () => Updates.reloadAsync()
+                  },
+                 
+              ]
+          );
           } else {
             // alert("Hata Apptsx : " + error);
             // axiosInstance.get("");

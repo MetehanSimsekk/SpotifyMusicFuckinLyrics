@@ -8,15 +8,16 @@ import { SelectList } from 'react-native-dropdown-select-list'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import CustomSelectList from './CustomSelectlist';
 import OpenMusicSelect from './OpenMusic';
+import { set } from 'lodash';
 let apiKeyForSystran:any="";
 let access_token:any="";
 let intervalLyrics:any; 
 
-const LyricsComponent = ({ currentTime, lyrics ,Duration,isPlaying,skipToNextTrack,PositionChange ,SlidingComplete}: { currentTime: any; lyrics:any,Duration:any,isPlaying:any ,skipToNextTrack:()=>void,PositionChange:(value:any)=>void,SlidingComplete:(value:any)=>void}) => {
+const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrack }: { currentTime: any;lyrics:any,Duration:any,isPlaying:any,skipToNextTrack:()=>void}) => {
   const [lyricsIndex, setLyricsIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [LanguageSelect, setLanguageSelect] = useState("");
-  const [DefaultLyrics, setDefaultLyrics] = useState(false);
+  let [DefaultLyrics, setDefaultLyrics] = useState(true);
   const [TranslateOflyrics, setTranslateOfLyrics] = useState('');
   const [isDropdownShown, setIsDropdownShown] = useState(true);
   const [intervalId, setIntervalId] = useState<any>(null);
@@ -26,15 +27,14 @@ const LyricsComponent = ({ currentTime, lyrics ,Duration,isPlaying,skipToNextTra
   const [FilteredLyrics, setFilteredLyrics] = useState<any>("");
   const [lyricsWithSpaceArea, setlyricsWithSpaceArea] = useState<any>("");
   const [SecondTime, setSecondTime] = useState(0);
-
   const scrollY = new Animated.Value(0);
   const bounceValue = new Animated.Value(1);
   const [Inıt, setInıt] = useState(false);
   const [lyricColors, setLyricColors] = useState<string[]>([]);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
-
-  
-
+  const [flagLyrics , setflagLyrics] = useState(false)
+  let durationChange:any;
+  const [hasEnteredEffect, setHasEnteredEffect] = useState(false);
  
  
 
@@ -90,46 +90,35 @@ const splitLyricsByLines = (lyrics:any) => {
     return lyrics.split('\n');
   };
 
-  // useEffect(() => {
-  
-  //   // setPosition(currentTime)
-  // }, [currentTime]);
-
-  
-  
-  // Diğer useEffect, LanguageSelect değiştiğinde çalışacak
   useEffect(() => {
-  
+   
       getTranslateOfLyrics();
     
   }, [LanguageSelect]);
 
 
- 
+
   useEffect(() => {
   
-
+  
   const lyricsLines = splitLyricsByLines(lyrics);
   const filteredLyrics = lyricsLines.filter((line:any) => line !== "");
   const totalSeconds = Math.floor(Duration / 1000);
   const resultFilteredLyrics = filteredLyrics.join('\n');
  
-  //  const totalIndexes = lyricsLines.length
+  setFilteredLyrics(resultFilteredLyrics)
+  setLanguageSelect("")
+ 
+  }, [lyrics]);
 
-  //  setSecondTime(totalSeconds/totalIndexes)
 
   
-  //  const Toplam = totalSeconds/totalIndexes
-  //  alert(Toplam)
-  setFilteredLyrics(resultFilteredLyrics)
- 
-
-  }, [lyrics]);
 
   const handleLyricPress = () => {
     setModalVisible(true);
     // return () => clearInterval(interval);
   };
+
   const stopSlider = () => {
     clearInterval(intervalId);
     isPlaying =false
@@ -138,34 +127,7 @@ const splitLyricsByLines = (lyrics:any) => {
     clearInterval(intervalLyrics);
   };
 
-
-
-  // useEffect(() => {
-  //   const nextLyricIndex = lyrics.findIndex((item:any) => item.time > currentTime);
-  //   setLyricsIndex(nextLyricIndex > 0 ? nextLyricIndex - 1 : 0);
-  // }, [currentTime]);
-
-//   useEffect(() => { 
-//     intervalLyrics = setInterval(() => {
-//     setCurrentLyricIndex((prevIndex) => (prevIndex+ 1) %  FilteredLyrics.split('\n').length);
-//    }, SecondTime*1000);
   
-//    // Temizleme işlemi: Komponent çıkış yaptığında zamanlayıcıyı durdur.
-  
-//  }, [FilteredLyrics]); //lyrics olabilir
- 
- 
-//  useEffect(() => {
-//    const updatedLyricColors = FilteredLyrics.split('\n').map((_:any, index:any) =>
-//      currentLyricIndex >= index ? colors[index % colors.length] : 'black'
-//    );
-//    setLyricColors(updatedLyricColors);
-//  }, [currentLyricIndex]);
- 
- 
-
- 
-
 
   const WhileCurrentlyPlay = async () => {
     try {
@@ -176,7 +138,8 @@ const splitLyricsByLines = (lyrics:any) => {
         setPosition((prevPosition) => {
           const newPosition = prevPosition + 1000;
           if (newPosition >= Duration) {
-           
+
+            setDefaultLyrics(true)
             skipToNextTrack();
             clearInterval(id);
           } else {
@@ -197,15 +160,12 @@ const splitLyricsByLines = (lyrics:any) => {
 
 
   const getTranslateOfLyrics = async () => {
-
-    setDefaultLyrics(false) // Görünüp kaybolma ilk şarkıda , Hatanın oluşma nednelerindne biri olabilir
-    let originalLines =[];
-    let translatedLines ="";
+   
     try {
       
      
       if(lyrics!=""){
-  
+        
        
         try {
           const requestData = {
@@ -222,9 +182,9 @@ const splitLyricsByLines = (lyrics:any) => {
               },
             }
           );
+          setDefaultLyrics(false) 
           const translatedText = response.data.outputs[0].output;
           
-       
           const originalLines = lyrics
             .split("\n")
             .map((line:any) => line.trim())
@@ -280,7 +240,7 @@ const splitLyricsByLines = (lyrics:any) => {
     //  stopSlider();   // Stop any existing intervals
    
     if (isPlaying) {
-      
+    
       WhileCurrentlyPlay(); // Start the interval if the component is playing
     }
     else{
@@ -290,24 +250,32 @@ const splitLyricsByLines = (lyrics:any) => {
   }, [isPlaying]);
   
   
-  const handleLyric = (index: number) => {
- 
-    const SumTime:number = SecondTime*1000
-    const lyricTime = index*SumTime// Burada lyrics listesinden ilgili şarkı sözünün zaman bilgisini alın
-    // setPosition(lyricTime);
-    PositionChange(lyricTime)
-    setCurrentLyricIndex(index)
-   
-    handleOpenSongForTimeWithSwitch(lyricTime);
-   
-  };
+
  
 
   const handleIconPress = () => {
     // Burada ilgili işlemleri yapabilirsiniz
     setModalVisible(false);
   };
-  const data = [
+//   const data = [
+//     {key:'tr', value:'Turkish'},
+//     {key:'en', value:'English'},
+//     {key:'es', value:'Spanish'},
+//     {key:'fr', value:'Francais'},
+//     {key:'pt', value:'Portuguese'},
+//     {key:'de', value:'Deutsch'},
+//     {key:'it', value:'Italiano'},
+//     {key:'ru', value:'Russian'},
+//     {key:'ja', value:'Japanese'},
+//     {key:'zh', value:'Chinese'},
+//     {key:'ko', value:'Korean'},
+//     {key:'cz', value:'Czech'},      
+//     {key:'ar', value:'Arabic'},
+//     {key:'pl', value:'Poland'},
+
+// ]
+
+const datas = [
     {key:'tr', value:'Turkish'},
     {key:'en', value:'English'},
     {key:'es', value:'Spanish'},
@@ -322,74 +290,12 @@ const splitLyricsByLines = (lyrics:any) => {
     {key:'cz', value:'Czech'},      
     {key:'ar', value:'Arabic'},
     {key:'pl', value:'Poland'},
+].sort((a, b) => a.key.localeCompare(b.key));
 
-]
-
-
-const handlePositionChange = (value:number) => {
-    
-
-  setPosition(value);
-  PositionChange(value)
-   setSliderValue(value);
-};
-
-const handleOpenSongForTimeWithSwitch = async (ms:any) => {
-  
-  const flooredMs = Math.floor(ms);
-  
-  isPlaying =true
- 
-  try {
-     await axios({
-      method: 'PUT',
-      url: `https://api.spotify.com/v1/me/player/seek?position_ms=${flooredMs}`,
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    });
-    setPosition(ms);
-
-    console.log(`Şarkı ${ms} ms konumunda başlatıldı.`);
-    isPlaying =false
-  } catch (error) {
-    console.error(error);
-   
-    throw error;
-  }
 
  
 
-};
 
-
-
-
-
-
-
-
-
-  
-  const msToTime = (ms: any) => {
-    const minutes = Math.floor(ms / 60000);
-    let seconds = Math.floor(((ms % 60000) / 1000)); // and here too 
-    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-  };
-
-  const msToTimeLast = (ms: any) => {
-      
-    const minutes = Math.floor(ms / 60000);
-    let seconds = Math.floor(((ms % 60000) / 1000)); // and here too
-    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-  };
-
-
-const ses = ()=>
-{
- //Bu method Modalin onShow özelliği ile tetiklenebilir sözler için
-}
- 
   useEffect(() => {
     
    
@@ -413,6 +319,7 @@ const ses = ()=>
   },[bounceValue]);
  
   return (
+    
     <View >
       <ScrollView scrollEnabled={false}  contentContainerStyle={styles.scrollViewContainer}>
         <TouchableOpacity  onPress={handleLyricPress}>
@@ -476,7 +383,7 @@ const ses = ()=>
     setSelected={(val: any) => {
       setLanguageSelect(val);
     }}
-    data={data}
+    data={datas}
     save="key"
     placeholder='Translate'
     searchPlaceholder=' '  
@@ -497,7 +404,7 @@ const ses = ()=>
       // contentOffset={{ x: 0, y: sliderValue/10}} 
       scrollEventThrottle={16} // ScrollView kaydırma hızı (16ms sıklıkla güncelle)
     >
-{DefaultLyrics == false &&
+{DefaultLyrics ==false &&
             TranslateOflyrics.split('\n').map((line: string, index: number) => (
               <TouchableOpacity >
               {/* <Text key={index} style={[styles.modalTranslateLyricsText, { overflow: 'hidden',  color: currentLyricIndex === index ? 'white' : 'black' ,lineHeight: 50,top:115,zIndex:-2}]}> */}
@@ -511,7 +418,7 @@ const ses = ()=>
        
 {DefaultLyrics &&
       FilteredLyrics.split('\n').map((line: string, index: number) => (
-          <TouchableOpacity key={index} onPress={() => handleLyric(index)}>
+          <TouchableOpacity key={index} >
           <Text
             key={index}
             style={[
@@ -532,46 +439,13 @@ const ses = ()=>
             </ScrollView>
        </View>
    
-       
- 
-       {/* <View style={[styles.sliderContainer, { marginBottom: 30 }]}>
-            <View style={{ position: 'absolute', top: -10, left: 0, right: 0, bottom:-120,  backgroundColor:'orange'
- }} />
- <Text style={styles.msToTime}>{msToTime(position)}</Text>
-    <Slider
-      style={{ width: '95%',transform: [{ scaleX: 0.6 }, { scaleY: 0.6 }],bottom:20}}
-      minimumValue={0}
-      maximumValue={Duration}
-      value={position} // Set the initial value of the slider as desired
-      minimumTrackTintColor="black"
-      maximumTrackTintColor="grey"
-      thumbTintColor="black"
       
-      onValueChange={handlePositionChange}
-
-      onSlidingComplete={(value) => {
-        if(isPlaying)
-        {WhileCurrentlyPlay()}
-
-      
-
-      SlidingComplete(value)
-    
-
-       }}
-       
-       onSlidingStart={() => {
-        stopSlider();
-       }}
-
-    />
-      <Text style={styles.msToTimeLast}>{msToTimeLast(Duration)}</Text>
-      </View> */}
       </Modal>
       
       </View>
    
   );
+
 };
 
 const styles = StyleSheet.create({
