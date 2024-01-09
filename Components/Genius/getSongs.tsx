@@ -1,4 +1,5 @@
 import searchSong from './searchSong';
+import getSong from './getSongById';
 import extractLyrics from '../lyricsFolders/extractLyricsImport';
 import { checkOptions } from '../lyricsFolders';
 
@@ -18,7 +19,7 @@ export default async function searchAndExtract(options: { apiKey: string, title:
             // Decide how to handle the null value, e.g., assign a default value
             lyrics = "";
         }
-
+        
         return {
             id: results[0].id,
             title: results[0].title,

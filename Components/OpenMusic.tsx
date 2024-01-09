@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SliderPosition from "./SliderMusicLine";
 import { useEffect, useState ,useRef,useContext} from 'react';
-import { ActivityIndicator,StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,Pressable } from 'react-native';
+import { ActivityIndicator,StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,Pressable,Dimensions, PixelRatio } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Slider from "@react-native-community/slider";
 import { ArtistNames } from '../Models/artistModel';
@@ -145,7 +145,6 @@ spotifyApi.setAccessToken(access_token);
 //NOT : Şarkıya tıklanıldığında şarkının açılması
 
 
-
 // PUT isteği için gönderilecek parametreler
 
  
@@ -162,7 +161,10 @@ spotifyApi.setAccessToken(access_token);
     const clickTimeout = useRef(null);
     const [artist, setArtist] = useState("");
     const [track, setTrack] = useState("");
-    // const [trackId, setTrackId] = useState("");
+    const [performedBy, setPerformedBy] = useState('');
+    const [producedBy, setProducedBy] = useState('');
+
+    
     const [lyrics, setLyrics] = useState("");
     const [TranslateOflyrics, setTranslateOfLyrics] = useState('');
     const [itemIdCrr, setitemIdWithCurrPlaying] = useState('');
@@ -180,6 +182,7 @@ spotifyApi.setAccessToken(access_token);
     const[ArtistText,setArtistText] = useState('')
     const [selectedValue, setSelectedValue] = useState(0);
     const [isLyricsVisible, setIsLyricsVisible] = useState(false);
+    const [isModalVisible, setModalVisible] = useState(false);
     const sourceRef = useRef({
       token: null,
     });
@@ -491,19 +494,23 @@ const handleDisableButton = () => {
     }, []);
 
 
-    // useEffect(() => {
+    useEffect(() => {
 
-    //   if (ArtistText) {
+      if (ArtistText) {
        
       
-    //     getLyricsMethod();
-    //   }
-    // }, [ArtistText]);
+        getLyricsMethod();
+      }
+    }, [ArtistText]);
 
+    useEffect(() => {
+      // Component mount olduğunda verileri çek
+      getTrackDataCreditsInfo();
+    }, [ArtistText]);
     const getLyricsMethod =()=>{
 
 
-      let i=0;
+     
       const options = {
         apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
         title: TrackText ,
@@ -515,14 +522,14 @@ const handleDisableButton = () => {
       
        
         getLyrics(options)
-
+          
          .then((lyrics: any) => {
+        
            if (lyrics!=null) { // lyrics değeri null değilse replace metodunu çağır
    
       
-      
-             const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '')
-           
+            
+             const lyricsWithoutBrackets = lyrics.replace(/\[[^\]]*\]/g, '')           
             
              setLyrics(lyricsWithoutBrackets);
             }             
@@ -533,10 +540,42 @@ const handleDisableButton = () => {
           });
      }
     } 
-     
+    
+////////////////////Düzenelecenk aşağısı
+const getTrackDataCreditsInfo = async () => {
+  
+  try {
+    
 
-   
-   
+    const options = {
+      apiKey: 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB',
+      title: TrackText,
+      artist: ArtistText,
+      optimizeQuery: true,
+    };
+
+    const id = await getSong(options);
+    const apiKey = 'KqyQaD95PrHTv3v8Uz5Io-wSdBnC9pbMEz5eKHcYm6FTeW4VJYZv3gnn0txOPsrB';
+    const songId = id.id;
+
+    const apiUrl = `https://api.genius.com/songs/${songId}?access_token=${apiKey}`;
+
+    const response = await axios.get(apiUrl);
+    const songInfo = response.data.response.song;
+
+    // İlgili bilgileri çıkarma
+    const performedBy = songInfo.writer_artists.map((artist: { name: any; }) => artist.name).join(', ');
+    setPerformedBy(performedBy)
+    const producedBy = songInfo.producer_artists.map((artist:{name:any;})=>artist.name).join(',')
+    setProducedBy(producedBy)
+  } catch (error) {
+    
+  }
+};
+    const toggleModal = () => {
+      setModalVisible(!isModalVisible);
+    };
+
 const DualSliders=()=>
 {
   setIsFirstButtonEnabled(true)
@@ -563,7 +602,10 @@ const DualSliders=()=>
 
       );
     };
-    
+    const scaleFontSize = (fontSize:any) => {
+      const ratio = PixelRatio.getFontScale();
+      return Math.round(fontSize * ratio);
+    };
     return (
       
       <View>
@@ -595,7 +637,7 @@ const DualSliders=()=>
               />
             
               <View style={styles.containerMusicButton}>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={()=>toggleModal()}>
                   <Icon name="sliders" size={30} color="orange" />
                 </TouchableOpacity>
                 <TouchableOpacity  onPress={skipToPreviousTrack} style={styles.SkipTrack}>
@@ -616,7 +658,7 @@ const DualSliders=()=>
                     {isPlaying ? (
                       <Ionicons style={styles.imagePlay} name="pause-circle" size={80} color="orange" />
                     ) : (
-                      <Ionicons style={styles.image} name="play-circle" size={80} color="orange" />
+                      <Ionicons style={styles.image} name="play-circle" size={80} color="orange" /> 
                     )}
                   </Text>
                 </TouchableOpacity>
@@ -628,6 +670,23 @@ const DualSliders=()=>
                 </TouchableOpacity>
               </View>
               {/* Diğer içerik */}
+              <Modal animationIn="flash" animationOut="slideOutDown" animationOutTiming={700} isVisible={isModalVisible}>
+      <View style={styles.modalContainer}>
+        <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
+          <Text>
+            <Icon style={{position:'absolute'}} name="close" size={45} color="orange" />
+          </Text>
+        </TouchableOpacity>
+        <View style={styles.modalContent}>
+        <Text style={[styles.title, styles.orangeText]}>Produced By</Text>
+        <Text numberOfLines={2} ellipsizeMode="clip"  style={[styles.text, styles.hipFont ]}>{producedBy}</Text>
+
+      
+          <Text style={[styles.title, styles.orangeText]}>Performed By</Text>
+          <Text numberOfLines={4} ellipsizeMode="clip"  style={[styles.text, styles.hipFont]}>{performedBy}</Text>
+        </View>
+      </View>
+    </Modal>
             </View>
           ) : (
             ""
@@ -640,6 +699,7 @@ const DualSliders=()=>
           ) : (
             ""
           )}
+
           
         </LinearGradient>
         
@@ -648,6 +708,7 @@ const DualSliders=()=>
     
     );
   };
+  const { width, height } = Dimensions.get('window');
   
   const styles = StyleSheet.create({
     container :{
@@ -715,6 +776,47 @@ const DualSliders=()=>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+   
+    modalContainer: {
+      flex: 1,
+     
+      justifyContent: 'center', // Ekranın dikey ortasına yerleştir
+      alignItems: 'center', // Ekranın yatay ortasına yerleştir
+      backgroundColor: 'rgba(0, 0, 0, 0)', 
+      bottom:70,
+    },
+    modalContent: {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      padding: 20,
+      borderRadius: 10,
+      width: width * 0.76, // Ekran genişliğinin 0.8'i kadar genişlik
+      height: height * 0.3,
+      position: 'relative',
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 5,
+    },
+    text: {
+      fontSize: width *0.044,
+      marginBottom: 15,
+     lineHeight:width * 0.066
+    },
+    orangeText: {
+      color: 'orange',
+    },
+    hipFont: {
+      fontFamily: 'AlNile-Bold', // Özel bir font ekleyin
+      color: 'white',
+    },
+    closeButton: {
+   
+   zIndex:1,
+     top: 25,
+     left: 145,
+    
     },
   });
  

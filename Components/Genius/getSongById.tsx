@@ -15,7 +15,7 @@ interface Song {
  * @param {string} apiKey
  * @returns {Promise<{ id: number, title: string, url: string, lyrics: string | null, albumArt: string }>} - song object
  */
-export default async function getSong(id: number | string, apiKey: string): Promise<{ id: number, title: string, url: string, lyrics: string | null, albumArt: string }> {
+export default async function getSong(id: number | string, apiKey: string): Promise<{ id: number, title: string, url: string, lyrics: string | null, albumArt: any }> {
   if (!id) throw new Error('No id was provided');
   if (!apiKey) throw new Error('No apiKey was provided');
   try {
@@ -27,7 +27,7 @@ export default async function getSong(id: number | string, apiKey: string): Prom
       title: song.full_title,
       url: song.url,
       lyrics: lyrics || null,
-      albumArt: song.song_art_image_url
+      albumArt: song
     };
   } catch (e) {
     throw e;

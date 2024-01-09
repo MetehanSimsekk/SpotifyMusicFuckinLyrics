@@ -23,12 +23,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FixedSizeList } from 'react-window';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { AnyARecord } from "dns";
 
 let device_id:any ="";
 let access_token:any ="";
 let refresh_token:any ="";
 let expires_in:number;
-
+const  SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1"
 if(Platform.OS === 'web')
 {
    access_token  = window.localStorage.getItem("access_token")
@@ -238,6 +239,8 @@ let i=0;
     
   }
  
+
+  
   
   useEffect(() => {
 
@@ -310,18 +313,15 @@ getLikedSongs(access_token);
   // const loadMoreData = async () => {
   //   // Yeni verileri yükleme işlemi burada yapılabilir.
   //   // Örnek: Daha fazla şarkı yüklemek için getLikedSongs işlevini çağırabilirsiniz.
-     const [isModalVisible, setModalVisible] = useState(false);
+  
 
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
-  };
 
 
   //   getLikedSongs(access_token)
   // };
-  const handleLongPress = () => {
+  const handleLongPress = (trackId:AnyARecord) => {
     // Haptic feedback ekleyerek cihazın titremesini sağla
-  toggleModal();
+ 
 
    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
   };
@@ -347,7 +347,7 @@ getLikedSongs(access_token);
     // Bekleme görseli
     <View style={styles.loadingContainer}>
       
-    <ActivityIndicator size="large" color="#0000ff" />
+    <ActivityIndicator size="large" color="orange" />
   </View>
   ) : (
     
@@ -384,7 +384,7 @@ getLikedSongs(access_token);
     onPress={() => GoToOpenMusic(item.track.id, index)}
     style={styles.listItem}
  delayLongPress={100}
-  onLongPress={handleLongPress}
+  onLongPress={()=>handleLongPress(item.track.id)}
   >
     {/* <Image
       source={{ uri: item.track.album.images[0]?.url || '' }} 
@@ -408,14 +408,6 @@ getLikedSongs(access_token);
   
 ))}
 
- <Modal transparent={true} visible={isModalVisible} animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text>This is a modal</Text>
-            <Button title="Close Modal" onPress={toggleModal} />
-          </View>
-        </View>
-      </Modal>
 
     </ScrollView>
     )}
