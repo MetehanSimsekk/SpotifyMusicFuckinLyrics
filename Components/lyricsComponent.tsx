@@ -1,14 +1,15 @@
-import React, { useEffect, useState,useRef } from 'react';
+import React, { useEffect, useState,useRef,useCallback ,useMemo} from 'react';
 import axios, { AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Modal, StyleSheet, ScrollView, TouchableOpacity, Animated,Image,TouchableWithoutFeedback ,StatusBar,Platform,Easing } from 'react-native';
+import { View, Modal, StyleSheet, ScrollView, TouchableOpacity, Animated,Image,TouchableWithoutFeedback ,StatusBar,Platform,Easing,FlatList,ActivityIndicator } from 'react-native';
 import Slider from "@react-native-community/slider";
-import { Card, Text } from 'react-native-paper';
+import {  Card, Text ,MD2Colors} from 'react-native-paper';
 import { SelectList } from 'react-native-dropdown-select-list'
 import Ionicons from '@expo/vector-icons/Ionicons';
-import CustomSelectList from './CustomSelectlist';
 import OpenMusicSelect from './OpenMusic';
 import { set } from 'lodash';
+import { Picker } from '@react-native-picker/picker';
+
 import * as Haptics from 'expo-haptics';
 let apiKeyForSystran:any="";
 let intervalLyrics:any; 
@@ -75,16 +76,20 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
   let durationChange:any;
   const [hasEnteredEffect, setHasEnteredEffect] = useState(false);
   const bounceValue = useRef(new Animated.Value(1)).current;
-
-
+  const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
    
       getTranslateOfLyrics();
     
-  }, [LanguageSelect]);
+  }, [lyrics, LanguageSelect]);
 
-
+  // const handleLanguageSelect = (val:any) => {
+  //   setLanguageSelect(val);
+  //   HandleVibrate();
+  //   getTranslateOfLyrics(); // Yeni dil seçildiğinde çeviriyi güncelleyin
+  // };
 
   useEffect(() => {
   
@@ -114,7 +119,11 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
     setIntervalId(null);
     clearInterval(intervalLyrics);
   };
-
+  const updatePosition = (newPosition:any) => {
+    if (newPosition !== position) {
+      setPosition(newPosition);
+    }
+  }
   
 
   const WhileCurrentlyPlay = async () => {
@@ -123,16 +132,18 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
       clearInterval(intervalId);
       const id = setInterval(() => {
     
-        setPosition((prevPosition) => {
+        setPosition((prevPosition: any) => {
           const newPosition = prevPosition + 1000;
           if (newPosition >= Duration) {
 
             setDefaultLyrics(true)
             skipToNextTrack();
             clearInterval(id);
-          } else {
-            setPosition(newPosition);
-          }
+          } 
+          // else {
+          //   // setPosition(newPosition);
+          // }
+          updatePosition(newPosition);
           return newPosition;
         });
       }, 1000);
@@ -148,7 +159,7 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
 
 
   const getTranslateOfLyrics = async () => {
-   
+    setLoading(false)
     try {
       
      
@@ -197,16 +208,20 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
           const alignedText = alignedLines.join("\n");
          
           setTranslateOfLyrics(alignedText.trim());
+          HandleVibrate()
+          setLoading(true)
         } catch (error:any) {
  
           setDefaultLyrics(true)
+          setLoading(true)
+
           // Hata yönetimini burada gerçekleştirin veya hata durumunu kullanıcıya bildirin
         }
-    
       }
     else{
-      
       setDefaultLyrics(true)
+      setLoading(true)
+
     }
     }
       
@@ -214,11 +229,14 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
       if(error=="Error: Request failed with status code 400")
       {
         setDefaultLyrics(true)
+        setLoading(true)
+
       }
       else{
         alert("The language of the song does not support the target language");
         setDefaultLyrics(true)
-        
+        setLoading(true)
+
       }
     }
   };
@@ -243,10 +261,14 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
 
  
 
-  const handleIconPress = () => {
-    // Burada ilgili işlemleri yapabilirsiniz
+  // const handleIconPress = () => {
+  //   // Burada ilgili işlemleri yapabilirsiniz
+  //   setModalVisible(false);
+  // };
+
+  const handleIconPress = useCallback(() => {
     setModalVisible(false);
-  };
+  }, []);
 //   const data = [
 //     {key:'tr', value:'Turkish'},
 //     {key:'en', value:'English'},
@@ -265,9 +287,9 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
 
 // ]
 
-const datas = [
-    {key:'tr', value:'Turkish'},
-    {key:'en', value:'English'},
+const datas = useMemo(() => [
+  {key: 'tr', value: 'Turkish', }, 
+  {key: 'en', value: 'English'},
     {key:'es', value:'Spanish'},
     {key:'fr', value:'Francais'},
     {key:'pt', value:'Portuguese'},
@@ -282,10 +304,8 @@ const datas = [
     {key:'sv', value:'Swedish'},      
     {key:'pl', value:'Poland'},
     {key:'ar', value:'Arabic'},
-]
+], []);
 
-
- 
 
 //  useEffect(() => {
 //     const timeout = setTimeout(() => {
@@ -362,6 +382,7 @@ const datas = [
             <Card style={styles.card}>
               <Card.Content>
               <Text style={styles.lyricsText}><Ionicons name="resize" size={32}  color="black" /></Text>
+             
               </Card.Content>
             </Card>
           </Animated.View>
@@ -400,22 +421,42 @@ const datas = [
   <TouchableOpacity style={{ marginHorizontal:150 }} onPress={handleIconPress} > 
   <Ionicons name="caret-down-circle" size={45} />
   </TouchableOpacity>
-  <TouchableOpacity> 
+  <TouchableOpacity>  
+  {!loading && <ActivityIndicator size="small" color="black"  animating={true} style={{position:'absolute',right:-3,top:20}}/>}
   <Ionicons name="language-sharp" size={47} color="black"  style={{marginRight:120}}/> 
   </TouchableOpacity>
  </View> 
+
  <View style={styles.containerSelectList}>
- <SelectList  fontFamily={'GillSans'}    dropdownStyles={{backgroundColor:'black'}} inputStyles={{color:'black'}} dropdownTextStyles={{color:'orange',fontSize:17, textDecorationLine: 'underline'} } 
-    boxStyles={{ width: 120, borderColor:'black' , borderRightWidth:7,borderBottomEndRadius:2,borderBottomStartRadius:2,borderBottomWidth:0}}  
-    setSelected={(val: any) => {
-      setLanguageSelect(val);
-      HandleVibrate()
-    }}
-    data={datas}
-    save="key"
-    placeholder='Translate'
-    searchPlaceholder=' ' 
-  />
+ 
+ <Picker
+      itemStyle={{
+        color: 'black', // Yazı rengi
+        fontSize: Platform.OS === 'ios' ? 17 : undefined, // iOS için yazı boyutu
+        fontFamily: Platform.OS === 'ios' ? 'Helvetica' : undefined, // iOS için yazı tipi ailesi
+        fontWeight:'400',
+        lineHeight:50
+       }}
+      style={{ width: 150}}
+      selectedValue={LanguageSelect} // Seçilen değeri burada tutun
+      onValueChange={(itemValue, itemIndex) => {
+        // 'placeholder' değeri hariç diğer değerleri state'e ayarlayın
+        if (itemValue !== "placeholder") {
+          setLanguageSelect(itemValue); // Seçilen değeri state'e kaydedin
+          
+        }
+      }}>
+         
+      
+    
+      
+      <Picker.Item label="Languages" value="placeholder" />
+     
+      <Picker.Item label="Türkçe" value="tr"  />
+      <Picker.Item label="English" value="en" />
+      <Picker.Item label="Spanisg" value="es" />
+    </Picker>
+    
   </View>
   <View style={[styles.sliderContainerTop, { marginTop: 30 }]}>
             <View style={{ position: 'absolute', top:-90, left: 0, right: 0, bottom:-70,  backgroundColor:'orange',
@@ -488,13 +529,24 @@ const styles = StyleSheet.create({
   },
   containerSelectList: {
  
-    top:40,
-    flexDirection:'row',
-    right:15,
-    position:'absolute',
-    zIndex:20000,
+    // top:40,
+    // flexDirection:'row',
+    // right:15,
+    // position:'absolute',
+    // zIndex:20000,
+    position: 'absolute', // Mutlak pozisyonlama
+   top: -40, // Üstten sıfır uzaklık
+   zIndex:20000,
+    right: 0, // Sağdan sıfır uzaklık
+    alignItems: 'flex-end', // İçeriği sağa yasla
   },
- 
+  selectListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  selectListItemText: {
+    marginLeft: 10,
+  },
   topBar: {
     position: 'absolute',
     top: 40,
@@ -592,6 +644,24 @@ textAlign:'left',
    
     top:19
     
+  }, item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width:150,
+    top:100,
+    padding: 10,
+    left:200,
+    height:10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  text: {
+    fontSize: 16,
   },
  
 });

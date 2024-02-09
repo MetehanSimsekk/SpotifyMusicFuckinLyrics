@@ -86,6 +86,7 @@ function App() {
        
         if (Platform.OS==='ios'){
           DeviceID;
+          console.log("İos için giriş yapıldı")
           AsyncStorage.getItem('access_token')
       .then(token => {
        
@@ -176,14 +177,15 @@ function App() {
     headerTintColor:'transparent',
    headerBackTitle:'',
       headerBlurEffect:'dark'  ,   headerTransparent: true,   headerTitle: () => <CustomHeaderTitle />,
-      gestureEnabled: false,
+      // gestureEnabled: true,
       headerBackTitleVisible: true,
         }} />
   <Stack.Screen name="OpenMusicSelect"  
         component={OpenMusicSelect}  options={() => ({
-          headerTitle: '',
-    
-        
+          headerTitle: ' ',
+       
+         
+         
           // headerTitle: () => (
           //   // <Image
           //   //   source={require('./path-to-your-image.png')} // Resmin yolunu doğru şekilde belirtin
@@ -192,14 +194,8 @@ function App() {
           //   // />
           // ),
           headerTintColor:'orange',
-          // headerTitleStyle: {
-          //   fontSize: 1, // Yazı tipi boyutunu istediğiniz gibi ayarlayın
-          //   fontFamily:'Cochin',
-            
-          //   color: 'orange', // Yazı tipi rengini istediğiniz gibi ayarlayın
-          //   // Diğer stil özelliklerini burada belirleyebilirsiniz
-          // },
-          headerBackTitleVisible: true, // Geri gitme düğmesinin metnini kaldırır
+         
+          headerBackTitleVisible: false, // Geri gitme düğmesinin metnini kaldırır
           headerTransparent: true,
         })}/>
         

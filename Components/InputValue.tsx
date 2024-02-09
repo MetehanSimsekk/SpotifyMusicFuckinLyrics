@@ -15,7 +15,7 @@ const API_URL = "https://api.spotify.com/v1/me/player/previous?device_id="+devic
 const Input = () => {
   const [intervalTime, setIntervalTime] = useState(0);
   const [text, setText] = useState("");  
-  const intervalRef = useRef<NodeJS.Timer  | null>(null);
+  const intervalRef = useRef<any  | null>(null);
 
 
   useEffect(() => {

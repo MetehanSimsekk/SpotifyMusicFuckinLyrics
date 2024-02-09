@@ -204,9 +204,7 @@ const HandleVibrate =() => {
    
 
  <Text style={styles.msToTimeLast}>{msToTimeLast(Duration)}</Text>
-<TouchableHighlight style={{marginHorizontal:170}}
->
-  
+<TouchableHighlight style={{marginHorizontal:170}}>  
  <LyricsComponent currentTime={position} lyrics={lyrics} Duration={Duration} isPlaying={isPlaying} skipToNextTrack={skipToNextTrack} ></LyricsComponent>
  </TouchableHighlight>
     </View>

@@ -59,7 +59,8 @@ if (Platform.OS === 'ios') {
 const MySlider = ({artist,track,Duration,onClosePressed}:{artist:any,track:any,Duration:any,onClosePressed:any}) => {
   const [values, setValues] = useState('00:00');
   const [valuesOther, setValuesOther] = useState('00:00');
-  const intervalRef = useRef<NodeJS.Timer  | null>(null);
+  // const intervalRef = useRef<NodeJS.Timer  | null>(null);
+  const intervalRef = useRef<any | null>(null);
   const [counter, setCounter] = useState(0); // Not Premium Properties
   const [position, setPosition] = useState(1);
   

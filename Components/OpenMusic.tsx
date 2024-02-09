@@ -31,10 +31,9 @@ import RNRestart from 'react-native-restart';
 import { reloadAsync } from 'expo-updates'
 import * as Updates from "expo-updates"
 import CodePush from 'react-native-code-push';
+import React from 'react';
 
 
-;
-const oldTrack:string="";
 let device_id: any = "";
 let access_token: any = "";
 let apiKeyForSystran: any = "";
@@ -66,6 +65,7 @@ if (Platform.OS === 'ios') {
     .then(([accessToken, deviceId, apiKeyForSystran]) => {
       // Değerleri alın ve gerekli işlemleri yapın
       access_token = accessToken;
+      console.log("OpenMusic  "+deviceId)
       device_id = deviceId;
       apiKeyForSystran = apiKeyForSystran;
 
@@ -142,7 +142,7 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
   const [clickCount, setClickCount] = useState(0);
   const clickTimeout = useRef(null);
   const [artist, setArtist] = useState("");
-  const [track, setTrack] = useState("");
+  
   const [performedBy, setPerformedBy] = useState('');
   const [producedBy, setProducedBy] = useState('');
   // const [Images, setImages] = useState('');
@@ -180,7 +180,7 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
   const sourceRef = useRef({
     token: null,
   });
-
+  
   const handlePressSecondButton = useCallback(() => {
     setIsFirstButtonEnabled(true);
     setIsSecondButtonEnabled(false);
@@ -242,8 +242,8 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
       route.params.index++;
 
       const nextTrackId = route.params.DataItems[nextIndex].track.id;
-
       await GetTrackData(nextTrackId);
+     
 
       setRenderTrigger(!renderTrigger);
     }
@@ -274,7 +274,7 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
         }
       });
       const positionMs = result.data.progress_ms;
-
+console.log(positionMs)
       const tracksDurationMS = result.data.item.duration_ms;
 
 
@@ -291,24 +291,44 @@ trackInfo.currentPosition = positionMs;
     }
   };
 
-
-
-
-
-
-  const HandleOpenSong = async (Track: any, SongPos: number) => {
+  const setActiveDevice = async (accessToken:any, deviceId:any) => {
+    try {
+      const response = await axios.put(
+        'https://api.spotify.com/v1/me/player',
+        { device_ids: ["ff836880a17756023e621382aa656ee62d3120f0"], play: true },
+        {
+          headers: {
+            'Authorization': `Bearer BQApJPp2s3ijUe7cn8xvsqdaC9baXU3fEPWTQ_UeFpKxevHqXpYWwP0FxcUEeMet4TXbTWJ49NbmA8ETSTZZ58bFJwgUQcjA7SkRcjhBnL1H2eUig9_mZqhzWdp6xqIJip1vX10wCQOiM3i6D76Fbrx9OvOSzH8X-aMlIJaJV8r0S6YQyK6m3hg8x7_-cjNpjEUqVY_9m8GA_a45lmOYkwNnCUgp6sYC0dxTdiL40Pc9Tphfr8w1KX-K5IaRyC2xYoJpacZaHp9zbwr1751OsDc585Bq-7q7lz6iGZaCl03vH2ekdiHsGvgefgQ`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
   
-    const oldTrack=Track
-   
-    await startMusic(Track, SongPos);
+      console.log('Cihaz aktif hale getirildi:', response);
+    } catch (error) {
+      console.error('Cihazı aktif hale getirirken hata oluştu:', error);
+    }
+  };
+
+
+
+
+  
+  const HandleOpenSong = async (Track: any, SongPos: number) => {
+if(route.params.previs!=null && route.params.previs==Track.id)
+{
+  return
+}
+// currentlyPlayingGetPosition()
+   await startMusic(Track, SongPos);
   };
 
 
   const startMusic = async (TrackID: any, SongPos: number) => {
 
     // alert(route.params.PathURis[0])
-  
 
+   
     const data = {
       //Burayı kontrol et çok gazla kayıt geliyor PathURis hatalı kod
       uris: ["spotify:track:" + TrackID.id],
@@ -317,22 +337,21 @@ trackInfo.currentPosition = positionMs;
       },
       position_ms: SongPos
     };
+    
     axios
       .put(
-        'https://api.spotify.com/v1/me/player/play',
+        `https://api.spotify.com/v1/me/player/play?device_id=${device_id}`,
         data,
         {
           headers: {
             Authorization: "Bearer " + access_token,
             "Content-Type": "application/json",
           },
-          params: {
-            params
-          }
+          timeout: 20000, 
         }
       )
       .then((response) => {
-
+console.log("döndü "+response)
       })
       .catch((error: any) => {
 
@@ -357,15 +376,17 @@ trackInfo.currentPosition = positionMs;
       });
   }
   const PauseMusic = async () => {
-    try {
+    console.log("PAUSE "+access_token)
+       try {
       await axios.put(
-        'https://api.spotify.com/v1/me/player/pause',
-        {},
+        `https://api.spotify.com/v1/me/player/pause?device_id=${device_id}`,
+        {}, // Bu endpoint için boş bir request body yeterli.
         {
           headers: {
-            Authorization: "Bearer " + access_token,
+            Authorization: `Bearer ${access_token}`,
             'Content-Type': 'application/json',
           },
+          
         }
       );
 

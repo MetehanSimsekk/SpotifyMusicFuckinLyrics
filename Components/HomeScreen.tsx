@@ -4,7 +4,6 @@ import APIRun from "../Components/API";
 import APIforMusixMatch from "./MusicMatch/APIforMusixMatch";
 import SystranForTranslate from "./TranslateAPI/SystranForTranslate";
 import GoogleTranslate from "./TranslateAPI/GoogleTranslate";
-import { white } from "react-native-paper/lib/typescript/src/styles/themes/v2/colors";
 import { useEffect, useState ,useRef} from 'react';
 import axios from "axios";
 import queryString from 'query-string';
@@ -15,7 +14,8 @@ const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
 const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
 const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
  const REDIRECT_URI="http://localhost:19006/callback"
- const REDIRECT_URI_Mobile="exp://192.168.1.4:19000";
+ const REDIRECT_URI_Mobile="exp://192.168.1.16:8081";
+
 const SCOPES=["user-read-private","user-read-email","user-library-read","playlist-modify-private","user-read-currently-playing","user-read-playback-state","user-modify-playback-state","app-remote-control","playlist-read-private","playlist-read-collaborative","playlist-modify-public","playlist-modify-private"]
 
 
@@ -210,8 +210,8 @@ function HomeScreen() {
   return (
     <Animated.View style={[styles.container, { backgroundColor }]}>
       <View style={styles.titleContainer}>
-      <Image source={require('../assets/orange.png')} style={styles.headerImage} />
-        <Text style={styles.titleText}>RANGER</Text>
+    
+        <Text style={styles.titleText}>ORANGER</Text>
        
       </View>
        <Image

@@ -24,7 +24,7 @@ import { FixedSizeList } from 'react-window';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { AnyARecord } from "dns";
-import { color } from "react-native-reanimated";
+import { isColor } from "react-native-reanimated";
 import HomeScreen from "./HomeScreen";
 
 let device_id:any ="";
@@ -49,6 +49,7 @@ if (Platform.OS === 'ios') {
     .then(([accessToken, deviceId, apiKeyForSystran]) => {
       // Değerleri alın ve gerekli işlemleri yapın
       access_token = accessToken;
+     console.log("mobile"+deviceId)
       device_id = deviceId;
       apiKeyForSystran = apiKeyForSystran;
 
@@ -133,15 +134,15 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
   const CLIENT_ID="081f04c9fc134332a54d2e1c567e7096";/*****/
   const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
   const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
-  const REDIRECT_URI="http://localhost:19006/callback"
+  // const REDIRECT_URI="http://localhost:19006/callback"
+  const REDIRECT_URI="exp://192.168.1.16:8081/callback"
   const SCOPES=["user-library-read","playlist-modify-private","user-read-currently-playing","user-read-playback-state","user-modify-playback-state","app-remote-control"]
   const [shouldRefresh, setShouldRefresh] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [flag,setFlag]=useState(true)
   const [lastPlayedTrackId, setLastPlayedTrackId] = useState(null);
-
-
+  const prevTrackIdRef = useRef(null);
   // const [products, setProducts] = useState<InAppPurchases.IAPItemDetails[]>([]);
 
   // useEffect(() => {
@@ -190,7 +191,8 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
 let i=0;
 
    async function getLikedSongs(access_token: string): Promise<any> {
-    const url = 'https://api.spotify.com/v1/me/tracks';
+    console.log("LİKEDSONG"+device_id)
+    const url = `https://api.spotify.com/v1/me/tracks?device_id=${device_id}`;
     const headers = {
       'Authorization': 'Bearer ' + access_token
       
@@ -206,7 +208,9 @@ let i=0;
      
       // İlk isteği yapma
       await new Promise(resolve => setTimeout(resolve, 1000));
-      response = await axios.get(url, { headers });
+      response = await axios.get(url, { headers,params: {
+        params
+      } });
       if (response && initialLoadComplete) {
         //alert("girdi2")
         data = response.data;
@@ -227,20 +231,22 @@ let i=0;
         if (response) {
           
           data = response.data;
-          
+        
           allLikedSongs.push(...data.items);
           
           setPlaylist(allLikedSongs)
           uris.push(allLikedSongs.map((item:any) => item.track.uri)); //Yalnızca item verileri içierisndne item track uriyi alır
-          
           setUris(uris);
-          setIsLoading(false)
+          
           
         }
         
       }
+      setIsLoading(false)
+      
     }
-    
+   
+   
   } 
     catch (error:any) {
       if(error=="Error: Request failed with status code 404")
@@ -277,6 +283,7 @@ getLikedSongs(access_token);
 
   const GoToOpenMusic = useCallback((trackInfoTrackId:any, index:any) => {
     
+    prevTrackIdRef.current=trackInfoTrackId
     navigation.navigate('OpenMusicSelect', { track: trackInfoTrackId, index, DataItems: playlist});
   }, [playlist, navigation]);
   // const updateSearch = (search:string) => {
@@ -381,12 +388,16 @@ getLikedSongs(access_token);
    {isLoading ? (
     // Bekleme görseli
     <View style={styles.loadingContainer}>
-      
+    
     <ActivityIndicator size="large" color="orange" />
   </View>
   ) : (
     
- 
+
+
+
+
+
   
     <ScrollView
       contentContainerStyle={styles.scrollViewContainer}
@@ -409,42 +420,46 @@ getLikedSongs(access_token);
       scrollEventThrottle={20}
     > 
   
-    <TouchableOpacity>
-      </TouchableOpacity>
-      {memoizedData.map((item: Song, index: number) => (
+    {/* <TouchableOpacity>
+      </TouchableOpacity> */}
+   
+   {memoizedData.map((item: Song, index: number) => (
         
-  <TouchableOpacity
-    key={item.track.id}
-    onPress={() => GoToOpenMusic(item.track.id, index)}
-    style={styles.listItem}
-//  delayLongPress={10}
-//   onLongPress={()=>handleLongPress(item.track.id)}
-  >
-    {/* <Image
-      source={{ uri: item.track.album.images[0]?.url || '' }} 
-      style={styles.albumCover}
+        <TouchableOpacity
+          key={item.track.id}
+          onPress={() => GoToOpenMusic(item.track.id, index)}
+          style={styles.listItem}
+      //  delayLongPress={10}
+      //   onLongPress={()=>handleLongPress(item.track.id)}
+        >
+          {/* <Image
+            source={{ uri: item.track.album.images[0]?.url || '' }} 
+            style={styles.albumCover}
+           
+          /> */}
+          <Image
+        source={{ uri: item.track.album.images[0]?.url || '' }}
+        style={styles.albumCover}
+        resizeMode="cover"
+        // placeholderSource={require('../path/to/placeholder.png')}
+      />
      
-    /> */}
-    <Image
-  source={{ uri: item.track.album.images[0]?.url || '' }}
-  style={styles.albumCover}
-  resizeMode="cover"
-  // placeholderSource={require('../path/to/placeholder.png')}
-/>
-    <View style={styles.textContainer}>
-      <Text style={styles.songName}>{item.track.name}</Text>
-      <Text style={styles.artistName}>
-        {item.track.artists[0]?.name || ''} 
-      </Text>
-    </View>
-      
-  </TouchableOpacity>
-  
-))}
+          <View style={styles.textContainer}>
+            <Text style={styles.songName}>{item.track.name}</Text>
+            <Text style={styles.artistName}>
+              {item.track.artists[0]?.name || ''} 
+            </Text>
+          </View>
+            
+        </TouchableOpacity>
+        
+      ))}
 
 
     </ScrollView>
+   
     )}
+    
   </LinearGradient>
   );
 };
