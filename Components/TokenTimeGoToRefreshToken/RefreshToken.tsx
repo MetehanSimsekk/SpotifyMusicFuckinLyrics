@@ -227,6 +227,7 @@ const refreshAccessToken = () => {
      AsyncStorage.setItem("access_token", response.data.access_token);
 
      AsyncStorage.setItem("expires_in", response_expires_in.toString());
+     console.log("token süresi uzatıldı.")
       // Erişim tokenı, süresi ve yenileme tokenı gibi bilgileri kullanabilirsiniz
     })
     .catch(error => {

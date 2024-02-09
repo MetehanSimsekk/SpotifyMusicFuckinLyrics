@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { useEffect, useState,useRef } from 'react';
-import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,ScrollView,RefreshControl, ActivityIndicator, Vibration ,Modal } from 'react-native';
+import { useEffect, useState,useRef,useCallback } from 'react';
+import { StyleSheet, Text,Button, View ,SafeAreaView,TextInput,FlatList,Alert,Image,AppRegistry,TouchableOpacity,TouchableHighlight,ScrollView,RefreshControl, ActivityIndicator, Vibration ,Modal ,BackHandler } from 'react-native';
 import { ArtistNames } from "../Models/artistModel";
 import axios, { AxiosResponse } from 'axios';
 import SearchBar from "../Components/Search";
@@ -24,10 +24,13 @@ import { FixedSizeList } from 'react-window';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { AnyARecord } from "dns";
+import { color } from "react-native-reanimated";
+import HomeScreen from "./HomeScreen";
 
 let device_id:any ="";
 let access_token:any ="";
 let refresh_token:any ="";
+let params: any = "";
 let expires_in:number;
 const  SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1"
 if(Platform.OS === 'web')
@@ -37,48 +40,28 @@ if(Platform.OS === 'web')
    
    device_id  = window.localStorage.getItem("device_id")
 }
-else if (Platform.OS === 'ios')
-{
-  AsyncStorage.getItem('access_token')
-  .then(token => {
-    access_token = token;
-    // Diğer işlemler
-  
-  })
-  .catch(error => {
-    // Hata yönetimi
-  });
+if (Platform.OS === 'ios') {
+  // AsyncStorage'den alınacak anahtarların bir listesini oluşturun
+  const keys = ['access_token', 'device_id', 'apiKeyForSystran'];
 
-AsyncStorage.getItem('refresh_token')
-  .then(tokenz => {
-    refresh_token = tokenz;
-    // Diğer işlemler
-  })
-  .catch(error => {
-    // Hata yönetimi
+  // Tüm anahtarlar için AsyncStorage.getItem çağrısını yapın ve Promise.all ile bekleyin
+  Promise.all(keys.map(key => AsyncStorage.getItem(key)))
+    .then(([accessToken, deviceId, apiKeyForSystran]) => {
+      // Değerleri alın ve gerekli işlemleri yapın
+      access_token = accessToken;
+      device_id = deviceId;
+      apiKeyForSystran = apiKeyForSystran;
 
-  });
+      params = {
+        "device_id": device_id || ""
+      };
 
-AsyncStorage.getItem('device_id')
-  .then(id => {
-    device_id = id;
-    // Diğer işlemler
-  })
-  .catch(error => {
-    // Hata yönetimi
-
-  });
-  AsyncStorage.getItem('expires_in')
-  .then(id => {
-    
-      expires_in= Number(id);
-
-    // Diğer işlemler
-  })
-  .catch(error => {
-    // Hata yönetimi
-
-  });
+      // Burada diğer işlemlerinizi gerçekleştirebilirsiniz
+    })
+    .catch(error => {
+      console.error(error);
+      // Hata yönetimi
+    });
 }
 else if (Platform.OS === 'android')
 {
@@ -131,9 +114,9 @@ var linkOfMusic;
 
 const Stack = createNativeStackNavigator();
 
-const params = {
-  "device_id": device_id
-};
+// const params = {
+//   "device_id": device_id
+// };
 
 const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -156,6 +139,39 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [flag,setFlag]=useState(true)
+  const [lastPlayedTrackId, setLastPlayedTrackId] = useState(null);
+
+
+  // const [products, setProducts] = useState<InAppPurchases.IAPItemDetails[]>([]);
+
+  // useEffect(() => {
+  //   const getProducts = async () => {
+  //     const { responseCode, results } = await InAppPurchases.getProductsAsync(['product_id_1', 'product_id_2']);
+  
+  //     if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
+  //       setProducts(results); // results burada tanımlı olduğundan setProducts'a güvenli bir şekilde geçirilebilir
+  //     }
+  //   };
+  
+  //   getProducts();
+  
+  //   return () => {
+  //     InAppPurchases.disconnectAsync(); // Bağlantıyı kes
+  //   };
+  // }, []);
+  
+  // Satın alma işlemi
+  const purchaseItem = async (productId:any) => {
+    console.log("Satın alma işlemi:", productId);
+    // İşlemleri burada gerçekleştir
+  };
+  
+
+
+
+
+
+
   const refreshFlatList = () => {
     setShouldRefresh(!shouldRefresh);
   };
@@ -229,17 +245,25 @@ let i=0;
     catch (error:any) {
       if(error=="Error: Request failed with status code 404")
           {
-            APIRun()
+            axiosInstance.get("");
+            HomeScreen()
           }
           else{
-           axiosInstance.get("");
-            
+           
+            axiosInstance.get("");
           }
     }
     
   }
  
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => true // Geri gitme işlemini engelle
+    );
 
+    return () => backHandler.remove(); // Ekrandan çıkarken geri gitmeyi yeniden etkinleştir
+  }, []);
   
   
   useEffect(() => {
@@ -251,18 +275,18 @@ getLikedSongs(access_token);
  // Verileri yükleme işlevi
 
 
-  function GoToOpenMusic(trackInfoTrackId: any,index:number) {
-    console.log("Uris göndermelisin pathuris yerine track uris")
-    navigation.navigate('OpenMusicSelect', { track: trackInfoTrackId,index,DataItems:playlist });
+  const GoToOpenMusic = useCallback((trackInfoTrackId:any, index:any) => {
     
-  }
-
-  const updateSearch = (search:string) => {
+    navigation.navigate('OpenMusicSelect', { track: trackInfoTrackId, index, DataItems: playlist});
+  }, [playlist, navigation]);
+  // const updateSearch = (search:string) => {
     
-    setSearch(search);
-  };
+  //   setSearch(search);
+  // };
    
- 
+  const updateSearch = useCallback((search:string) => {
+    setSearch(search);
+  }, []);
 
 
 
@@ -286,15 +310,19 @@ getLikedSongs(access_token);
     return filteredData;
 
   };
-  const refreshData = () => {
-    setIsRefreshing(true); // Sayfa yenileniyor olarak işaretleyin
+  // const refreshData = () => {
+  //   setIsRefreshing(true); // Sayfa yenileniyor olarak işaretleyin
+  //   loadMoreDataTrigger()
+  //   setIsRefreshing(false);
+  //   // Burada verilerinizi yenileyen kodları ekleyin
+  //   // Örneğin, getLikedSongs(access_token) gibi bir işlevi çağırabilirsiniz
+  //   // Veriler yüklendikten sonra setIsRefreshing(false) ile sayfa yenilenmiş olarak işaretleyin
+  // };
+  const refreshData = useCallback(() => {
+    setIsRefreshing(true);
     loadMoreDataTrigger()
     setIsRefreshing(false);
-    // Burada verilerinizi yenileyen kodları ekleyin
-    // Örneğin, getLikedSongs(access_token) gibi bir işlevi çağırabilirsiniz
-    // Veriler yüklendikten sonra setIsRefreshing(false) ile sayfa yenilenmiş olarak işaretleyin
-  };
-  
+  }, []);
     
   // const RenderItem = ({ item, index }: { item: Song, index: number }) => {
  
@@ -308,7 +336,8 @@ getLikedSongs(access_token);
   //     </TouchableOpacity>
   //   );
   // };
-  const filteredPlaylist = filterData(playlist, searchQuery);
+  // const filteredPlaylist = filterData(playlist, searchQuery);
+  const filteredPlaylist = useMemo(() => filterData(playlist, searchQuery), [playlist, searchQuery]);
 
   // const loadMoreData = async () => {
   //   // Yeni verileri yükleme işlemi burada yapılabilir.
@@ -323,13 +352,12 @@ getLikedSongs(access_token);
     // Haptic feedback ekleyerek cihazın titremesini sağla
  
 
-   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+   
   };
 
-  const loadMoreDataTrigger = () => {
-   //alert("loadMoreDataTrigger")
-    setLoadMoreData(true); // İkinci yükleme işlemi başladı
-  };
+  const loadMoreDataTrigger = useCallback(() => {
+    setLoadMoreData(true);
+  }, []);
 
   const memoizedData = useMemo(() => filteredPlaylist, [filteredPlaylist]);
 
@@ -341,8 +369,15 @@ getLikedSongs(access_token);
           // start={{ x: 0.5, y: 0 }}
           // end={{ x: 0.5, y: 1 }}
   >
-   
-    
+    <View style={styles.searchbarContainer}>
+     <Searchbar iconColor="orange" selectionColor={'orange'}
+    placeholder="Search"
+    onChangeText={updateSearch}
+    value={searchQuery}
+    style={styles.searchbar}
+  />
+</View>
+
    {isLoading ? (
     // Bekleme görseli
     <View style={styles.loadingContainer}>
@@ -351,9 +386,11 @@ getLikedSongs(access_token);
   </View>
   ) : (
     
-    
+ 
+  
     <ScrollView
       contentContainerStyle={styles.scrollViewContainer}
+      indicatorStyle="white"  // Sağdaki scroll çubuğunun rengini ayarlar
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />
       }
@@ -371,20 +408,17 @@ getLikedSongs(access_token);
       }}
       scrollEventThrottle={20}
     > 
-      <Searchbar
-  placeholder="Search"
-  onChangeText={updateSearch}
-  value={searchQuery}
-  style={styles.searchbar}
-/>
+  
+    <TouchableOpacity>
+      </TouchableOpacity>
       {memoizedData.map((item: Song, index: number) => (
         
   <TouchableOpacity
     key={item.track.id}
     onPress={() => GoToOpenMusic(item.track.id, index)}
     style={styles.listItem}
- delayLongPress={100}
-  onLongPress={()=>handleLongPress(item.track.id)}
+//  delayLongPress={10}
+//   onLongPress={()=>handleLongPress(item.track.id)}
   >
     {/* <Image
       source={{ uri: item.track.album.images[0]?.url || '' }} 
@@ -419,9 +453,13 @@ const styles = StyleSheet.create({
     flex: 1,
    
   },
+  searchbarContainer:{
+    shadowColor:'white',
+   shadowRadius:23,
+    marginTop:80,
+  },
   scrollViewContainer: {
-
-    paddingVertical: 16,
+    paddingVertical: 0,
     paddingHorizontal: 16,
   },
   listItem: {
@@ -483,7 +521,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   searchbar: {
-    margin: 16, // Arama çubuğunun dört tarafına boşluk ekler
+   
+ 
+    color:'white',
+    margin: 0,
+    marginTop:16,
+    marginBottom:5, // Arama çubuğunun dört tarafına boşluk ekler
+    backgroundColor: 'transparent'
   },
 });
 

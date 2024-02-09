@@ -255,21 +255,22 @@ const MySlider = ({artist,track,Duration,onClosePressed}:{artist:any,track:any,D
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
-    marginBottom: 230, // marginVertical yerine marginBottom kullanıldı
+    marginTop: 200, // marginVertical yerine marginBottom kullanıldı
   },
   slider: {
     width: '80%',
-    top: 3,
+    top: 30,
     height: 30,
     margin: 10,
     
   },
   textValues: {
     fontSize: 20,
-    top: -10,
+    top: 10,
     marginHorizontal: 0,
     position: 'absolute',
     color:'orange'
@@ -281,11 +282,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'orange',
     justifyContent: 'center',
     alignItems: 'center',
-    bottom: -31, // marginVertical yerine marginBottom kullanıldı
+    bottom: -60, // marginVertical yerine marginBottom kullanıldı
   },
   textValuesOther: {
     fontSize: 20,
-    top: 1,
+    top: 20,
     marginVertical: 50,
     position: 'absolute',
     color:'orange',
@@ -302,7 +303,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Avenir-Heavy',
     textAlign: 'center',
-    bottom: 62.5,
+    bottom: 45,
     color:'orange',
 
   },
@@ -313,7 +314,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontFamily: 'Avenir-Light',
     textAlign: 'center',
-    bottom: 39,
+    bottom: 21.8,
     color:'orange',
 
   },

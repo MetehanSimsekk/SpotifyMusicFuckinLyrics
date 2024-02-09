@@ -1,3 +1,3 @@
 export class ArtistNames {
-    track=[];
+    track:any=[];
 }

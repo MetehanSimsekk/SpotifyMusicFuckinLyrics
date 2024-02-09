@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Modal, StyleSheet, ScrollView, TouchableOpacity, Animated,Image,TouchableWithoutFeedback ,StatusBar,Platform} from 'react-native';
+import { View, Modal, StyleSheet, ScrollView, TouchableOpacity, Animated,Image,TouchableWithoutFeedback ,StatusBar,Platform,Easing } from 'react-native';
 import Slider from "@react-native-community/slider";
 import { Card, Text } from 'react-native-paper';
 import { SelectList } from 'react-native-dropdown-select-list'
@@ -9,10 +9,50 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import CustomSelectList from './CustomSelectlist';
 import OpenMusicSelect from './OpenMusic';
 import { set } from 'lodash';
+import * as Haptics from 'expo-haptics';
 let apiKeyForSystran:any="";
-let access_token:any="";
 let intervalLyrics:any; 
+const splitLyricsByLines = (lyrics:any) => {
+  return lyrics.split('\n');
+};
 
+
+
+if (Platform.OS === 'ios') {
+  // AsyncStorage'den alınacak anahtarların bir listesini oluşturun
+  AsyncStorage.getItem('apiKeyForSystran')
+  .then(apiKey => {
+    apiKeyForSystran = apiKey;
+    // Diğer işlemler
+  })
+  .catch(error => {
+   console.error(error);
+  });
+
+}
+else if (Platform.OS === 'android') {
+  
+  AsyncStorage.getItem('access_token')
+  .then(token => {
+    // access_token = token;
+    // Diğer işlemler
+  })
+  .catch(error => {
+  
+
+    console.error(error);
+    // Hata yönetimi
+  });
+
+  AsyncStorage.getItem('apiKeyForSystran')
+    .then(apiKey => {
+      // apiKeyForSystran = apiKey;
+      // Diğer işlemler
+    })
+    .catch(error => {
+     console.error(error);
+    });
+}
 const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrack }: { currentTime: any;lyrics:any,Duration:any,isPlaying:any,skipToNextTrack:()=>void}) => {
   const [lyricsIndex, setLyricsIndex] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
@@ -27,68 +67,16 @@ const LyricsComponent = ({ currentTime,lyrics ,Duration,isPlaying,skipToNextTrac
   const [FilteredLyrics, setFilteredLyrics] = useState<any>("");
   const [lyricsWithSpaceArea, setlyricsWithSpaceArea] = useState<any>("");
   const [SecondTime, setSecondTime] = useState(0);
-  const scrollY = new Animated.Value(0);
-  const bounceValue = new Animated.Value(1);
+  const scrollY = useRef(new Animated.Value(0)).current;
   const [Inıt, setInıt] = useState(false);
   const [lyricColors, setLyricColors] = useState<string[]>([]);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
   const [flagLyrics , setflagLyrics] = useState(false)
   let durationChange:any;
   const [hasEnteredEffect, setHasEnteredEffect] = useState(false);
- 
- 
+  const bounceValue = useRef(new Animated.Value(1)).current;
 
 
-
-  if (Platform.OS === 'ios') {
-    
-    AsyncStorage.getItem('access_token')
-    .then(token => {
-      access_token = token;
-      // Diğer işlemler
-    })
-    .catch(error => {
-    
-
-      console.error(error);
-      // Hata yönetimi
-    });
-  
-    AsyncStorage.getItem('apiKeyForSystran')
-      .then(apiKey => {
-        apiKeyForSystran = apiKey;
-        // Diğer işlemler
-      })
-      .catch(error => {
-       console.error(error);
-      });
-  }
-  else if (Platform.OS === 'android') {
-    
-    AsyncStorage.getItem('access_token')
-    .then(token => {
-      access_token = token;
-      // Diğer işlemler
-    })
-    .catch(error => {
-    
-
-      console.error(error);
-      // Hata yönetimi
-    });
-  
-    AsyncStorage.getItem('apiKeyForSystran')
-      .then(apiKey => {
-        apiKeyForSystran = apiKey;
-        // Diğer işlemler
-      })
-      .catch(error => {
-       console.error(error);
-      });
-  }
-const splitLyricsByLines = (lyrics:any) => {
-    return lyrics.split('\n');
-  };
 
   useEffect(() => {
    
@@ -172,7 +160,7 @@ const splitLyricsByLines = (lyrics:any) => {
             input: lyrics,
             target: LanguageSelect,
           };
-        
+      
           const response = await axios.post(
             "https://api-translate.systran.net/translation/text/translate",
             requestData,
@@ -183,6 +171,7 @@ const splitLyricsByLines = (lyrics:any) => {
             }
           );
           setDefaultLyrics(false) 
+       
           const translatedText = response.data.outputs[0].output;
           
           const originalLines = lyrics
@@ -194,7 +183,7 @@ const splitLyricsByLines = (lyrics:any) => {
             .split("\n")
             .map((line:any) => line.trim())
             .filter((line:any) => line.length > 0);
-            console.log(translatedLines)
+           
           const maxLength = Math.max(originalLines.length, translatedLines.length);
         
           const alignedLines = [];
@@ -206,6 +195,7 @@ const splitLyricsByLines = (lyrics:any) => {
           }
        
           const alignedText = alignedLines.join("\n");
+         
           setTranslateOfLyrics(alignedText.trim());
         } catch (error:any) {
  
@@ -287,37 +277,75 @@ const datas = [
     {key:'ja', value:'Japanese'},
     {key:'zh', value:'Chinese'},
     {key:'ko', value:'Korean'},
-    {key:'cz', value:'Czech'},      
-    {key:'ar', value:'Arabic'},
+    {key:'el', value:'Greek'}, 
+    {key:'id', value:'Indonesian'},      
+    {key:'sv', value:'Swedish'},      
     {key:'pl', value:'Poland'},
-].sort((a, b) => a.key.localeCompare(b.key));
+    {key:'ar', value:'Arabic'},
+]
 
 
  
+
+//  useEffect(() => {
+//     const timeout = setTimeout(() => {
+//       Animated.sequence([
+//         Animated.timing(bounceValue, {
+//           toValue: 1.03,
+//           duration: 350,
+//           useNativeDriver: false , // Tüm animasyonlarda useNativeDriver'ı aynı değere ayarlayın
+//           easing: Easing.inOut(Easing.ease) // Easing fonksiyonu ekleyin
+//         }),
+//         Animated.timing(bounceValue, {
+//           toValue: 1,
+//           duration: 350,
+//           useNativeDriver: false ,
+//           easing: Easing.inOut(Easing.ease)
+//         }),
+//         // ... diğer animasyonlar
+//       ]).start();
+//     }, 350);
+
+//     return () => {
+//       clearTimeout(timeout);
+//       bounceValue.stopAnimation(); // Animasyonu durdur
+//     };
+//   }, [bounceValue]);
+
 
 
   useEffect(() => {
-    
-   
+    const startBouncing = () => {
+      // Yukarıya doğru zıplama
+      Animated.timing(bounceValue, {
+        toValue: 1.04, // Zıplama miktarını ayarlayın
+        duration: 300, // Zıplama süresi
+        useNativeDriver: true,
+      }).start(() => {
+        // Aşağıya doğru düşüş
+        Animated.timing(bounceValue, {
+          toValue: 1, // Başlangıç değerine dönüş
+          duration: 300, // Düşüş süresi
+          useNativeDriver: true,
+        }).start();
+      });
+    };
 
-    const timeout =setTimeout(() => {
-      
-      Animated.sequence([
-        Animated.timing(bounceValue, { toValue: 1.03, duration: 350, useNativeDriver: false }),
-        Animated.timing(bounceValue, { toValue: 1, duration: 350, useNativeDriver: false }),
-        Animated.timing(bounceValue, { toValue: 1.03, duration: 350, useNativeDriver: false }),
-        Animated.timing(bounceValue, { toValue: 1, duration: 350, useNativeDriver: false }),
-        
-      ]).start()
-    }, 300); // 3 saniye gecikme
+    // Animasyonu başlat
+    startBouncing();
+    const interval = setInterval(startBouncing, 2000);
+    // İsteğe bağlı: Belirli aralıklarla animasyonu tekrar et
+    // const interval = setInterval(startBouncing, 1000);
 
     return () => {
-      clearTimeout(timeout);
-      
-  // Animasyonu iptal et (eğer bileşen hızlıca unmount edilirse)
+      clearTimeout(interval);
+       bounceValue.stopAnimation(); // Animasyonu durdur
     };
-  },[bounceValue]);
- 
+  }, [bounceValue]);
+  const HandleVibrate =() => {
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  }
   return (
     
     <View >
@@ -377,18 +405,17 @@ const datas = [
   </TouchableOpacity>
  </View> 
  <View style={styles.containerSelectList}>
- <SelectList  fontFamily={'GillSans'}    dropdownStyles={{backgroundColor:'black'}} inputStyles={{color:'black'}} dropdownTextStyles={{color:'white',fontSize:17} } 
+ <SelectList  fontFamily={'GillSans'}    dropdownStyles={{backgroundColor:'black'}} inputStyles={{color:'black'}} dropdownTextStyles={{color:'orange',fontSize:17, textDecorationLine: 'underline'} } 
     boxStyles={{ width: 120, borderColor:'black' , borderRightWidth:7,borderBottomEndRadius:2,borderBottomStartRadius:2,borderBottomWidth:0}}  
-    // boxStyles={{ width: 120, borderColor:'black' , borderRightWidth:0,borderLeftWidth:0,borderTopWidth:0,borderBottomEndRadius:0,borderBottomStartRadius:0,borderBottomWidth:0}}
     setSelected={(val: any) => {
       setLanguageSelect(val);
+      HandleVibrate()
     }}
     data={datas}
     save="key"
     placeholder='Translate'
-    searchPlaceholder=' '  
+    searchPlaceholder=' ' 
   />
-  
   </View>
   <View style={[styles.sliderContainerTop, { marginTop: 30 }]}>
             <View style={{ position: 'absolute', top:-90, left: 0, right: 0, bottom:-70,  backgroundColor:'orange',
@@ -406,9 +433,9 @@ const datas = [
     >
 {DefaultLyrics ==false &&
             TranslateOflyrics.split('\n').map((line: string, index: number) => (
-              <TouchableOpacity >
+              <TouchableOpacity key={`translated-line-${index}`}>
               {/* <Text key={index} style={[styles.modalTranslateLyricsText, { overflow: 'hidden',  color: currentLyricIndex === index ? 'white' : 'black' ,lineHeight: 50,top:115,zIndex:-2}]}> */}
-              <Text key={index} style={[styles.modalTranslateLyricsText, { overflow: 'hidden',   color: index % 2 === 0 ? 'black' : 'white',fontSize: index % 2 === 0 ? 25 : 18,fontFamily: index % 2 === 0 ? 'Georgia-Bold' : 'Futura',lineHeight: 40,top:0,zIndex:-2}]}>
+              <Text  style={[styles.modalTranslateLyricsText, { overflow: 'hidden',   color: index % 2 === 0 ? 'black' : 'white',fontSize: index % 2 === 0 ? 25 : 18,fontFamily: index % 2 === 0 ? 'Georgia-Bold' : 'Futura',lineHeight: 40,top:0,zIndex:-2}]}>
 
                 {line}             
               </Text>
@@ -418,9 +445,9 @@ const datas = [
        
 {DefaultLyrics &&
       FilteredLyrics.split('\n').map((line: string, index: number) => (
-          <TouchableOpacity key={index} >
+          <TouchableOpacity key={`original-line-${index}`} >
           <Text
-            key={index}
+            // key={index}
             style={[
               styles.modalLyricsText,
               {

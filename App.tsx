@@ -161,18 +161,29 @@ function App() {
         
     //     }
     //         // navigate to DetailsScreen on component mount
-
+    const CustomHeaderTitle = () => (
+      <View style={styles.headerContainer}>
+        {/* İstediğiniz gibi bir resim ekleyin */}
+        <Image source={require('./assets/orange.png')} style={styles.headerImage} />
+      
+      </View>
+    );
   return (
     <NavigationContainer ref={navigationRef}>
   <Stack.Navigator>
-  <Stack.Screen name="Home" component={HomeScreen} options={{headerShown:false}}/>
+  <Stack.Screen name="Home" component={HomeScreen} options={{headerTransparent: true,   headerTitle: '',}}/>
   <Stack.Screen name="SpotifyLikedMusicScreen" component={SpotifyLikedMusicScreen} options={{
-          gestureEnabled: false,
-          headerLeft: () => null,
-      
+    headerTintColor:'transparent',
+   headerBackTitle:'',
+      headerBlurEffect:'dark'  ,   headerTransparent: true,   headerTitle: () => <CustomHeaderTitle />,
+      gestureEnabled: false,
+      headerBackTitleVisible: true,
         }} />
   <Stack.Screen name="OpenMusicSelect"  
-        component={OpenMusicSelect}  options={({ navigation }) => ({
+        component={OpenMusicSelect}  options={() => ({
+          headerTitle: '',
+    
+        
           // headerTitle: () => (
           //   // <Image
           //   //   source={require('./path-to-your-image.png')} // Resmin yolunu doğru şekilde belirtin
@@ -181,13 +192,13 @@ function App() {
           //   // />
           // ),
           headerTintColor:'orange',
-          headerTitleStyle: {
-            fontSize: 35, // Yazı tipi boyutunu istediğiniz gibi ayarlayın
-            fontFamily:'Cochin',
-            fontWeight:'200',
-            color: 'orange', // Yazı tipi rengini istediğiniz gibi ayarlayın
-            // Diğer stil özelliklerini burada belirleyebilirsiniz
-          },
+          // headerTitleStyle: {
+          //   fontSize: 1, // Yazı tipi boyutunu istediğiniz gibi ayarlayın
+          //   fontFamily:'Cochin',
+            
+          //   color: 'orange', // Yazı tipi rengini istediğiniz gibi ayarlayın
+          //   // Diğer stil özelliklerini burada belirleyebilirsiniz
+          // },
           headerBackTitleVisible: true, // Geri gitme düğmesinin metnini kaldırır
           headerTransparent: true,
         })}/>
@@ -204,5 +215,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerImage: {
+    width: 50, // Resim genişliği
+    height: 50, // Resim yüksekliği
+    marginRight: 8, 
+    bottom:10// Resim ile metin arasındaki boşluk
+  },
+  headerText: {
+    fontFamily: 'GillSans-UltraBold',
+    fontSize: 36, // Örnek bir değer
+    fontWeight: 'bold', // Örnek bir değer
+    color: 'orange',
   },
 });

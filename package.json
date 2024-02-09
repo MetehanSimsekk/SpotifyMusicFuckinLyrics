@@ -17,6 +17,7 @@
     "@types/react-native-linear-gradient": "^2.4.0",
     "axios": "^0.24.0",
     "expo": "~48.0.11",
+    "expo-haptics": "~12.2.1",
     "expo-linear-gradient": "~12.1.2",
     "expo-status-bar": "~1.4.4",
     "expo-updates": "^0.18.19",
@@ -42,8 +43,7 @@
     "react-native-web": "~0.18.11",
     "react-window": "^1.8.9",
     "spotify-web-api-js": "^1.5.2",
-    "string-similarity": "^4.0.4",
-    "expo-haptics": "~12.2.1"
+    "string-similarity": "^4.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
