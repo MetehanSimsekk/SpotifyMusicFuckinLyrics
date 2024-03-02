@@ -89,7 +89,7 @@ function App() {
           console.log("İos için giriş yapıldı")
           AsyncStorage.getItem('access_token')
       .then(token => {
-       
+       console.log("App : token alındı "+token)
         access_token =token
       
         if (access_token!="") {

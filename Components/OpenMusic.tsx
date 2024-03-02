@@ -32,8 +32,8 @@ import { reloadAsync } from 'expo-updates'
 import * as Updates from "expo-updates"
 import CodePush from 'react-native-code-push';
 import React from 'react';
-
-
+import { NativeModules } from 'react-native';
+const previsMusic:any="";
 let device_id: any = "";
 let access_token: any = "";
 let apiKeyForSystran: any = "";
@@ -132,20 +132,18 @@ if (Platform.OS === 'android') {
 
 
 const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) => {
-   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+
   const [playlist, setPlaylist] = useState<ArtistNames[]>([]);
-  // const [currentPosition, setCurrentPosition] = useState(0);
-  const [position, setPosition] = useState(0);
-  // const [durationFullTimeOfSong, setDuration] = useState(0);
-  const [intervalId, setIntervalId] = useState<any>(null);
-  const [clickCount, setClickCount] = useState(0);
-  const clickTimeout = useRef(null);
-  const [artist, setArtist] = useState("");
   
+  const [position, setPosition] = useState(0);
+
+  const [intervalId, setIntervalId] = useState<any>(null);
+
+
   const [performedBy, setPerformedBy] = useState('');
   const [producedBy, setProducedBy] = useState('');
-  // const [Images, setImages] = useState('');
+
   const [trackInfo, setTrackInfo] = useState({
     images: '',
     trackText: '',
@@ -160,32 +158,18 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
   });
 
   const [lyrics, setLyrics] = useState("");
-  const [TranslateOflyrics, setTranslateOfLyrics] = useState('');
-  const [itemIdCrr, setitemIdWithCurrPlaying] = useState('');
-  // const [itemIdOpen, setitemIdWithOpenSong] = useState('');
   const [isFirstTime, setisFirstTime] = useState(true);
   const [renderTrigger, setRenderTrigger] = useState(false);
-  const [LanguageSelect, setLanguageSelect] = useState("");
-  // const [DefaultLyrics, setDefaultLyrics] = useState(false);
-  // const [isLyricsFetched, setIsLyricsFetched] = useState(false);
+
   const [isFirstButtonEnabled, setIsFirstButtonEnabled] = useState(false);
-  const [isSecondButtonEnabled, setIsSecondButtonEnabled] = useState(true);
-  let [remainingTime, setRemainingTime] = useState(0);
-  // const [currentPosition, setCurrentPosition] = useState(0);
-  // const [TrackText, setTrackText] = useState('')
-  // const [ArtistText, setArtistText] = useState('')
-  const [selectedValue, setSelectedValue] = useState(0);
-  const [isLyricsVisible, setIsLyricsVisible] = useState(false);
+
   const [isModalVisible, setModalVisible] = useState(false);
   const sourceRef = useRef({
     token: null,
   });
-  
-  const handlePressSecondButton = useCallback(() => {
-    setIsFirstButtonEnabled(true);
-    setIsSecondButtonEnabled(false);
-  }, []);
+  const prevTrackIdRef = useRef(null);
 
+  const { RCTSpotifyModule } = NativeModules;
   
 
   // const handlePositionChanged = (position: number) => {
@@ -242,6 +226,7 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
       route.params.index++;
 
       const nextTrackId = route.params.DataItems[nextIndex].track.id;
+      
       await GetTrackData(nextTrackId);
      
 
@@ -276,7 +261,7 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
       const positionMs = result.data.progress_ms;
 console.log(positionMs)
       const tracksDurationMS = result.data.item.duration_ms;
-
+      
 
       const itemId = result.data.item.id
       // setCurrentPosition(positionMs);
@@ -315,15 +300,32 @@ trackInfo.currentPosition = positionMs;
 
   
   const HandleOpenSong = async (Track: any, SongPos: number) => {
-if(route.params.previs!=null && route.params.previs==Track.id)
+    console.log(route.params.previs)
+    console.log(route.params.track)
+
+if(route.params.previs==route.params.track)
 {
+
+console.log("yine gridi")
+
+
   return
 }
-// currentlyPlayingGetPosition()
-   await startMusic(Track, SongPos);
+   //await startMusic(Track, SongPos);
+      await playASong(Track)
   };
 
-
+  const playASong = async (trackURI:any) => {
+    const RCTSpotifyModule = NativeModules.RCTSpotifyModule;
+    
+    try {
+     
+      await RCTSpotifyModule.playTrack(trackURI.id);
+      console.log('Playing track');
+    } catch (e) {
+      console.error('Error playing track:', e);
+    }
+  };
   const startMusic = async (TrackID: any, SongPos: number) => {
 
     // alert(route.params.PathURis[0])
@@ -347,11 +349,10 @@ if(route.params.previs!=null && route.params.previs==Track.id)
             Authorization: "Bearer " + access_token,
             "Content-Type": "application/json",
           },
-          timeout: 20000, 
         }
       )
       .then((response) => {
-console.log("döndü "+response)
+
       })
       .catch((error: any) => {
 
