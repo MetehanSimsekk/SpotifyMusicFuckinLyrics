@@ -135,7 +135,7 @@ const SpotifyLikedMusicScreen = ({navigation}:{navigation:any}) => {
   const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
   const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
   // const REDIRECT_URI="http://localhost:19006/callback"
-  const REDIRECT_URI="exp://192.168.1.16:8081/callback"
+  const REDIRECT_URI="exp://192.168.1.16:19000/callback"
   const SCOPES=["user-library-read","playlist-modify-private","user-read-currently-playing","user-read-playback-state","user-modify-playback-state","app-remote-control"]
   const [shouldRefresh, setShouldRefresh] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -277,14 +277,15 @@ let i=0;
 setLoadMoreData(true)
 getLikedSongs(access_token);
 
-}, [access_token]);
- // Verileri yükleme işlevi
+}, [access_token]);// Verileri yükleme işlevi
 
 
   const GoToOpenMusic = useCallback((trackInfoTrackId:any, index:any) => {
     
+    
+   
+    navigation.navigate('OpenMusicSelect', { track: trackInfoTrackId, index, DataItems: playlist,previs:prevTrackIdRef.current});
     prevTrackIdRef.current=trackInfoTrackId
-    navigation.navigate('OpenMusicSelect', { track: trackInfoTrackId, index, DataItems: playlist});
   }, [playlist, navigation]);
   // const updateSearch = (search:string) => {
     

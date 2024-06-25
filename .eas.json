@@ -1,0 +1,16 @@
+{
+    "cli": {
+      "version": ">= 0.38.0"
+    },
+    "build": {
+      "production": {
+        "ios": {
+          "workflow": "generic"
+        },
+        "android": {
+          "workflow": "generic"
+        }
+      }
+    }
+  }
+  

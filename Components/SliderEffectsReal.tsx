@@ -245,7 +245,9 @@ const MySlider = ({artist,track,Duration,onClosePressed}:{artist:any,track:any,D
     <View>
     {/* onPress={() => HandleOpenSongForZeroTime(false)} */}
     <TouchableOpacity style={styles.circleButton}  onPress={() => HandlePressForZeroTime(onClosePressed)}>
-                <AntDesign name="close" style={{ alignItems: 'center' }} size={30} color="black" />
+                <AntDesign name="close" style={{ alignItems: 'center' ,
+    
+ }} size={30} color="black" />
     </TouchableOpacity>
     </View>
     </View>

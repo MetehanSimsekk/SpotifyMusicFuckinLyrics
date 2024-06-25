@@ -1,6 +1,6 @@
 import { EffectCallback, useRef , useEffect,useState }  from 'react';
 import * as React from 'react';
-import { StyleSheet, Text,Button, View,AppRegistry,TouchableOpacity,Image} from 'react-native';
+import { StyleSheet, Text,Button, View,AppRegistry,TouchableOpacity,Image, Alert, Linking} from 'react-native';
 import SpotifyLikedMusicScreen from './Components/GetMusicListAndSearch';
 import OpenMusicSelect from './Components/OpenMusic';
 import DeviceID from './Components/DeviceID';
@@ -39,7 +39,7 @@ let refresh_token:any;
   }
   else if(Platform.OS == 'ios')
     {
-
+    
     const getData = async (key:any) => {
       try {
         const value = await AsyncStorage.getItem(key);
@@ -81,6 +81,7 @@ function App() {
  
    //const navigationRef = React.useRef(null);
   
+
       useEffect(() => {
        
        
@@ -89,7 +90,7 @@ function App() {
           console.log("İos için giriş yapıldı")
           AsyncStorage.getItem('access_token')
       .then(token => {
-       
+       console.log("App : token alındı "+token)
         access_token =token
       
         if (access_token!="") {
@@ -174,12 +175,12 @@ function App() {
   <Stack.Navigator>
   <Stack.Screen name="Home" component={HomeScreen} options={{headerTransparent: true,   headerTitle: '',}}/>
   <Stack.Screen name="SpotifyLikedMusicScreen" component={SpotifyLikedMusicScreen} options={{
-    headerTintColor:'transparent',
-   headerBackTitle:'',
+    //headerTintColor:'transparent',
+   //headerBackTitle:'',
       headerBlurEffect:'dark'  ,   headerTransparent: true,   headerTitle: () => <CustomHeaderTitle />,
       // gestureEnabled: true,
-      headerBackTitleVisible: true,
-        }} />
+     // headerBackTitleVisible: true,  
+          }} />
   <Stack.Screen name="OpenMusicSelect"  
         component={OpenMusicSelect}  options={() => ({
           headerTitle: ' ',

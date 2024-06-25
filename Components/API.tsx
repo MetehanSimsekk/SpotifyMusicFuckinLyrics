@@ -12,7 +12,7 @@ const CLIENT_SECRET="9be70720ac1044dbb78f3a10476978a9";/*****/
 const SPOTFY_AUTHORIZE_ENDPOINT="https://accounts.spotify.com/authorize"
  const REDIRECT_URI="http://localhost:19006/callback"
  
- const REDIRECT_URI_Mobile="exp://192.168.1.16:8081/callback";
+ const REDIRECT_URI_Mobile="exp://10.22.225.17:8081/callback";
 const SCOPES=["user-read-private","user-read-email","user-library-read","playlist-modify-private","user-read-currently-playing","user-read-playback-state","user-modify-playback-state","app-remote-control","playlist-read-private","playlist-read-collaborative"]
 // const SCOPES=["user-read-private","user-read-email","user-read-playback-state","user-modify-playback-state","user-read-currently-playing","playlist-modify-private","playlist-modify-public","playlist-read-private"]
 
@@ -30,7 +30,7 @@ const APIRun =()=>{
     
     try {
       
-      function getCodeFromURL(url: string): string | null {
+      function getCodeFromURL(url: string): string | null{
         const urlParams = new URLSearchParams(url.split('?')[1]);
         return urlParams.get('code');
       }

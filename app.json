@@ -3,8 +3,9 @@
     "name": "SpotifyMusicFuckinLyrics",
     "slug": "SpotifyMusicFuckinLyrics",
     "version": "1.0.0",
+    "runtimeVersion": "1.0.0",
     "orientation": "portrait",
-    "scheme": "SpotifyMusicFuckinLyrics",
+    "scheme": "spotify-music-fuckin-lyrics",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
@@ -13,7 +14,8 @@
         {
           "username": "account-username"
         }
-      ]],
+      ]
+    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -23,19 +25,23 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.oranger"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.example.oranger"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "runtimeVersion": {
-      "policy": "sdkVersion"
+    },   
+    "extra": {
+      "eas": {
+        "projectId": "9670685c-e929-41e3-ab46-8b4e88055ebb"
+      }
     }
   }
 }
