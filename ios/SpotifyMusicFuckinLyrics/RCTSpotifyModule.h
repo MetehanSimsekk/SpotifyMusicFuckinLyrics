@@ -3,6 +3,7 @@
 @interface RCTSpotifyModule : NSObject <RCTBridgeModule>
 @end
 
+
 @implementation RCTSpotifyModule
 
 RCT_EXPORT_MODULE();
@@ -25,3 +26,4 @@ RCT_EXPORT_METHOD(playTrack:(NSString *)trackId
 }
 
 @end
+

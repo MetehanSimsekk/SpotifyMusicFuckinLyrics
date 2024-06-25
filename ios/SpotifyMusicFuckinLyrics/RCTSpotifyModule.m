@@ -4,6 +4,7 @@
 @implementation RCTSpotifyModule {
     SPTAppRemote *_appRemote;
 }
+
 RCT_EXPORT_MODULE(SpotifyModule);
 
 - (instancetype)init {
@@ -13,10 +14,12 @@ RCT_EXPORT_MODULE(SpotifyModule);
     }
     return self;
 }
+
 RCT_EXPORT_METHOD(playTrack:(NSString *)trackURI
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
+
   
 
    // Bağlantı parametrelerini ayarla
@@ -28,6 +31,7 @@ RCT_EXPORT_METHOD(playTrack:(NSString *)trackURI
 
     // Spotify bağlantısını oluştur
     SPTAppRemote *appRemote = [[SPTAppRemote alloc] initWithApplicationIdentifier:@"com.spotify.music" configuration:[[SPTConfiguration alloc] initWithClientID:@"081f04c9fc134332a54d2e1c567e7096" redirectURL:[NSURL URLWithString:@"exp://192.168.1.112:19000/callback"]] logLevel:SPTAppRemoteLogLevelDebug];
+
 
     // Bağlantı parametrelerini ayarla
     appRemote.connectionParameters = connectionParameters;

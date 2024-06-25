@@ -1,3 +1,4 @@
+
 platform :ios, (podfile_properties['ios.deploymentTarget'] || '13.0') rescue '13.0'
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
@@ -23,6 +24,7 @@ def flipper_configuration(podfile_properties)
   end
 
   flipper_config
+
 end
 
 target 'SpotifyMusicFuckinLyrics' do
@@ -42,7 +44,9 @@ target 'SpotifyMusicFuckinLyrics' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
     # Note that if you have use_frameworks! enabled, Flipper will not work if enabled
+
     :flipper_configuration => flipper_configuration(podfile_properties)
+
   )
 
   post_install do |installer|
@@ -72,4 +76,6 @@ target 'SpotifyMusicFuckinLyrics' do
       Pod::UI.warn e
     end
   end
+
 end
+

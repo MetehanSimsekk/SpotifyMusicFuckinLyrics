@@ -169,9 +169,11 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
     token: null,
   });
   const prevTrackIdRef = useRef(null);
+
   const { RCTSpotifyModule } = NativeModules;
   
  
+
   // const handlePositionChanged = (position: number) => {
   //   setCurrentPosition(position)
 
@@ -299,7 +301,7 @@ const OpenMusicSelect = ({ route, navigation}: { route: any, navigation: any}) =
       const positionMs = result.data.progress_ms;
 console.log(positionMs)
       const tracksDurationMS = result.data.item.duration_ms;
-
+      
 
       const itemId = result.data.item.id
       // setCurrentPosition(positionMs);
@@ -346,9 +348,9 @@ if(route.params.previs==route.params.track)
 
 
 
-
   return
 }
+
          openSpotify(Track)
     // startMusic(Track, SongPos);
    
@@ -369,6 +371,7 @@ if(route.params.previs==route.params.track)
   } catch (e) {
       console.error('Error playing track:', e);
   }
+
   };
   const startMusic = async (TrackID: any, SongPos: number) => {
 
